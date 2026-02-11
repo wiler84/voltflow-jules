@@ -1,0 +1,365 @@
+Initialized native services in: C:\Users\SCOFIELD\.gradle\native
+Initialized jansi services in: C:\Users\SCOFIELD\.gradle\native
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe''. Working directory: C:\Users\SCOFIELD\.gradle\.tmp\tmp-jvm8592469536927887890probe Command: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe''
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot, JAVA_VERSION=25.0.2, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=25.0.2+10-LTS, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=25.0.2+10-LTS, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Starting process 'Gradle build daemon'. Working directory: C:\Users\SCOFIELD\.gradle\daemon\9.1.0 Command: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\Users\SCOFIELD\.gradle\wrapper\dists\gradle-9.1.0-bin\9agqghryom9wkf8r80qlhnts3\gradle-9.1.0\lib\gradle-daemon-main-9.1.0.jar -javaagent:C:\Users\SCOFIELD\.gradle\wrapper\dists\gradle-9.1.0-bin\9agqghryom9wkf8r80qlhnts3\gradle-9.1.0\lib\agents\gradle-instrumentation-agent-9.1.0.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.1.0
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 7.03 secs.
+The client will now receive all logging from the daemon (pid: 14588). The daemon log file: C:\Users\SCOFIELD\.gradle\daemon\9.1.0\daemon-14588.out.log
+Daemon will be stopped at the end of the build 
+Using 4 worker leases.
+Configuration on demand is an incubating feature.
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot, JAVA_VERSION=25.0.2, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=25.0.2+10-LTS, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=25.0.2+10-LTS, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Watching the file system is configured to be enabled if available
+Now considering [C:\Users\SCOFIELD\AndroidStudioProjects\voltflow] as hierarchies to watch
+File system watching is active
+Starting Build
+Settings evaluated using settings file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\settings.gradle.kts'.
+Using local directory build cache for the root build (location = C:\Users\SCOFIELD\.gradle\caches\build-cache-1, remove unused entries = after 7 days).
+Projects loaded. Root project using build file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\build.gradle.kts'.
+Included projects: [root project 'voltflow', project ':app']
+
+> Configure project :
+Evaluating root project 'voltflow' using build file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.10', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.10', apply: false]
+
+> Configure project :app
+Evaluating project ':app' using build file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.10']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.10']
+WARNING: The option setting 'android.usesSdkInManifest.disallowed=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.sdk.defaultTargetSdkToCompileSdkIfUnset=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.enableAppCompileTimeRClass=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.r8.optimizedResourceShrinking=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.defaults.buildfeatures.resvalues=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+Using default execution profile
+Build 95a94e99-4512-4eeb-a9ad-34a90eed3fe9 is started
+Using Kotlin Gradle Plugin gradle813 variant
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Task name matched 'assembleDebug'
+Selected primary task 'assembleDebug' from project :
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin\java.exe''. Working directory: C:\Users\SCOFIELD\.gradle\.tmp\tmp-jvm13871083978963161600probe Command: C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin\java.exe -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin\java.exe''
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot, JAVA_VERSION=17.0.18, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.18+8, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.18+8, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot\bin\java.exe''. Working directory: C:\Users\SCOFIELD\.gradle\.tmp\tmp-jvm18088571377855576613probe Command: C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot\bin\java.exe -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot\bin\java.exe''
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot, JAVA_VERSION=11.0.29, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=11.0.29+7, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=11.0.29+7, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+All projects evaluated.
+Tasks to be executed: [task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugNativeDebugMetadata', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:checkDebugAarMetadata', task ':app:processDebugNavigationResources', task ':app:compileDebugNavigationResources', task ':app:generateDebugResValues', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:generateDebugAssets', task ':app:mergeDebugAssets', task ':app:compressDebugAssets', task ':app:desugarDebugFileDependencies', task ':app:dexBuilderDebug', task ':app:mergeDebugGlobalSynthetics', task ':app:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:mergeExtDexDebug', task ':app:mergeLibDexDebug', task ':app:mergeProjectDexDebug', task ':app:mergeDebugJniLibFolders', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug']
+Tasks that were excluded: []
+Resolve mutations for :app:preBuild (Thread[#71,included builds,5,main]) started.
+:app:preBuild (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[#72,Execution worker,5,main]) started.
+:app:preDebugBuild (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[#72,Execution worker,5,main]) started.
+:app:mergeDebugNativeDebugMetadata (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[#73,Execution worker Thread 2,5,main]) started.
+:app:checkKotlinGradlePluginConfigurationErrors (Thread[#73,Execution worker Thread 2,5,main]) started.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[#73,Execution worker Thread 2,5,main]) started.
+:app:checkDebugAarMetadata (Thread[#73,Execution worker Thread 2,5,main]) started.
+
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugAarMetadata' as it is up-to-date.
+Resolve mutations for :app:processDebugNavigationResources (Thread[#73,Execution worker Thread 2,5,main]) started.
+:app:processDebugNavigationResources (Thread[#73,Execution worker Thread 2,5,main]) started.
+
+> Task :app:processDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app:processDebugNavigationResources' is 0d7d2031f80cf171eb00110621379204
+Skipping task ':app:processDebugNavigationResources' as it is up-to-date.
+Resolve mutations for :app:compileDebugNavigationResources (Thread[#73,Execution worker Thread 2,5,main]) started.
+:app:compileDebugNavigationResources (Thread[#73,Execution worker Thread 2,5,main]) started.
+
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app:compileDebugNavigationResources' is 2c693a4bdb8203667bbdfc980dfba9d9
+Skipping task ':app:compileDebugNavigationResources' as it is up-to-date.
+Resolve mutations for :app:generateDebugResValues (Thread[#73,Execution worker Thread 2,5,main]) started.
+:app:generateDebugResValues (Thread[#71,included builds,5,main]) started.
+
+> Task :app:generateDebugResValues UP-TO-DATE
+Build cache key for task ':app:generateDebugResValues' is 2616e29b728541ccc176613fe99ec73d
+Skipping task ':app:generateDebugResValues' as it is up-to-date.
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[#71,included builds,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[#71,included builds,5,main]) started.
+
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Caching has been disabled for the task
+Skipping task ':app:mapDebugSourceSetPaths' as it is up-to-date.
+Resolve mutations for :app:generateDebugResources (Thread[#71,included builds,5,main]) started.
+:app:generateDebugResources (Thread[#71,included builds,5,main]) started.
+
+> Task :app:generateDebugResources UP-TO-DATE
+Build cache key for task ':app:generateDebugResources' is eeb06b304196eb81d3a2189343303b78
+Skipping task ':app:generateDebugResources' as it is up-to-date.
+Resolve mutations for :app:mergeDebugResources (Thread[#71,included builds,5,main]) started.
+:app:mergeDebugResources (Thread[#71,included builds,5,main]) started.
+
+> Task :app:mergeDebugResources UP-TO-DATE
+Build cache key for task ':app:mergeDebugResources' is 8884c8d6ca76e9c7bca6cc48cf42f9e3
+Skipping task ':app:mergeDebugResources' as it is up-to-date.
+Resolve mutations for :app:packageDebugResources (Thread[#71,included builds,5,main]) started.
+:app:packageDebugResources (Thread[#71,included builds,5,main]) started.
+
+> Task :app:packageDebugResources UP-TO-DATE
+Build cache key for task ':app:packageDebugResources' is 9a0356cab43aaef39e281398cbf0ac33
+Skipping task ':app:packageDebugResources' as it is up-to-date.
+Resolve mutations for :app:parseDebugLocalResources (Thread[#71,included builds,5,main]) started.
+:app:parseDebugLocalResources (Thread[#71,included builds,5,main]) started.
+
+> Task :app:parseDebugLocalResources UP-TO-DATE
+Build cache key for task ':app:parseDebugLocalResources' is b05085478646b0515770d5c89e55726d
+Skipping task ':app:parseDebugLocalResources' as it is up-to-date.
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[#71,included builds,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[#71,included builds,5,main]) started.
+
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Caching has been disabled for the task
+Skipping task ':app:createDebugCompatibleScreenManifests' as it is up-to-date.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[#71,included builds,5,main]) started.
+:app:extractDeepLinksDebug (Thread[#71,included builds,5,main]) started.
+
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+Build cache key for task ':app:extractDeepLinksDebug' is 4cd1958f975f3d2c5e348c78f17e5e54
+Skipping task ':app:extractDeepLinksDebug' as it is up-to-date.
+Resolve mutations for :app:processDebugMainManifest (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:processDebugMainManifest (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:processDebugMainManifest UP-TO-DATE
+Build cache key for task ':app:processDebugMainManifest' is 8adc2f51fada0901098684f66451745f
+Skipping task ':app:processDebugMainManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifest (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:processDebugManifest (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:processDebugManifest UP-TO-DATE
+Build cache key for task ':app:processDebugManifest' is a93ab7d292214b3e1bf957cae5768517
+Skipping task ':app:processDebugManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifestForPackage (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:processDebugManifestForPackage (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+Custom actions are attached to task ':app:processDebugManifestForPackage'.
+Build cache key for task ':app:processDebugManifestForPackage' is de669acb98b45b3c669dbaa3e16e6894
+Skipping task ':app:processDebugManifestForPackage' as it is up-to-date.
+Resolve mutations for :app:processDebugResources (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:processDebugResources (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:processDebugResources UP-TO-DATE
+Build cache key for task ':app:processDebugResources' is dbb0d5e7e024f1648061d32b7f7889b1
+Skipping task ':app:processDebugResources' as it is up-to-date.
+Resolve mutations for :app:compileDebugKotlin (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:compileDebugKotlin (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:compileDebugKotlin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\journal-1\file-access.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\9.1.0\fileHashes\kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\9.1.0\fileHashes\fileHashes.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\9.1.0\fileHashes\resourceHashesCache.bin
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugAndroidTestKotlin
+Build cache key for task ':app:compileDebugKotlin' is b6bb536f863a800498d3b0605a072f87
+Skipping task ':app:compileDebugKotlin' as it is up-to-date.
+
+> Task :app:compileDebugKotlin UP-TO-DATE
+Resolve mutations for :app:javaPreCompileDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:javaPreCompileDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:javaPreCompileDebug UP-TO-DATE
+Build cache key for task ':app:javaPreCompileDebug' is 3e2e3cfd3b074d81c2cf806a4e8693e7
+Skipping task ':app:javaPreCompileDebug' as it is up-to-date.
+Resolve mutations for :app:compileDebugJavaWithJavac (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:compileDebugJavaWithJavac (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+Skipping task ':app:compileDebugJavaWithJavac' as it has no source files and no previous output files.
+Resolve mutations for :app:generateDebugAssets (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:generateDebugAssets (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:generateDebugAssets UP-TO-DATE
+Skipping task ':app:generateDebugAssets' as it has no actions.
+Resolve mutations for :app:mergeDebugAssets (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:mergeDebugAssets (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeDebugAssets UP-TO-DATE
+Caching disabled for task ':app:mergeDebugAssets' because:
+  Simple merging task
+Skipping task ':app:mergeDebugAssets' as it is up-to-date.
+Resolve mutations for :app:compressDebugAssets (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:compressDebugAssets (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:compressDebugAssets UP-TO-DATE
+Build cache key for task ':app:compressDebugAssets' is cc4c80372e3ad3f828a010db25dbdd65
+Skipping task ':app:compressDebugAssets' as it is up-to-date.
+Resolve mutations for :app:desugarDebugFileDependencies (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:desugarDebugFileDependencies (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+Build cache key for task ':app:desugarDebugFileDependencies' is 586cfbea8805ee6a1676647a90847e73
+Skipping task ':app:desugarDebugFileDependencies' as it is up-to-date.
+Resolve mutations for :app:dexBuilderDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:dexBuilderDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:dexBuilderDebug UP-TO-DATE
+Build cache key for task ':app:dexBuilderDebug' is 6e78c83a6bd3b3f18415caa5685c9b97
+Skipping task ':app:dexBuilderDebug' as it is up-to-date.
+Resolve mutations for :app:mergeDebugGlobalSynthetics (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:mergeDebugGlobalSynthetics (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+Build cache key for task ':app:mergeDebugGlobalSynthetics' is 2d4783968eef4ea31d8e52634d486c6a
+Skipping task ':app:mergeDebugGlobalSynthetics' as it is up-to-date.
+Resolve mutations for :app:processDebugJavaRes (Thread[#72,Execution worker,5,main]) started.
+:app:processDebugJavaRes (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:processDebugJavaRes UP-TO-DATE
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\main\resources', not found
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\debug\resources', not found
+Caching disabled for task ':app:processDebugJavaRes' because:
+  Caching has been disabled for the task
+Skipping task ':app:processDebugJavaRes' as it is up-to-date.
+Resolve mutations for :app:mergeDebugJavaResource (Thread[#72,Execution worker,5,main]) started.
+:app:mergeDebugJavaResource (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+Caching disabled for task ':app:mergeDebugJavaResource' because:
+  Caching has been disabled for the task
+Skipping task ':app:mergeDebugJavaResource' as it is up-to-date.
+Resolve mutations for :app:checkDebugDuplicateClasses (Thread[#72,Execution worker,5,main]) started.
+:app:checkDebugDuplicateClasses (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+Caching disabled for task ':app:checkDebugDuplicateClasses' because:
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugDuplicateClasses' as it is up-to-date.
+Resolve mutations for :app:mergeExtDexDebug (Thread[#72,Execution worker,5,main]) started.
+:app:mergeExtDexDebug (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:mergeExtDexDebug UP-TO-DATE
+Build cache key for task ':app:mergeExtDexDebug' is 9bc76fbfd4565b14546bb7f7fddfe253
+Skipping task ':app:mergeExtDexDebug' as it is up-to-date.
+Resolve mutations for :app:mergeLibDexDebug (Thread[#72,Execution worker,5,main]) started.
+:app:mergeLibDexDebug (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:mergeLibDexDebug UP-TO-DATE
+Build cache key for task ':app:mergeLibDexDebug' is ef432d321bc08f2e3e99facd0292fd80
+Skipping task ':app:mergeLibDexDebug' as it is up-to-date.
+Resolve mutations for :app:mergeProjectDexDebug (Thread[#72,Execution worker,5,main]) started.
+:app:mergeProjectDexDebug (Thread[#72,Execution worker,5,main]) started.
+
+> Task :app:mergeProjectDexDebug UP-TO-DATE
+Build cache key for task ':app:mergeProjectDexDebug' is 6ed98b84e947be0c59b6a21403318603
+Skipping task ':app:mergeProjectDexDebug' as it is up-to-date.
+Resolve mutations for :app:mergeDebugJniLibFolders (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:mergeDebugJniLibFolders (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+Caching disabled for task ':app:mergeDebugJniLibFolders' because:
+  Simple merging task
+Skipping task ':app:mergeDebugJniLibFolders' as it is up-to-date.
+Resolve mutations for :app:mergeDebugNativeLibs (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:mergeDebugNativeLibs (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+Caching disabled for task ':app:mergeDebugNativeLibs' because:
+  Caching has been disabled for the task
+Skipping task ':app:mergeDebugNativeLibs' as it is up-to-date.
+Resolve mutations for :app:stripDebugDebugSymbols (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:stripDebugDebugSymbols (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+Caching disabled for task ':app:stripDebugDebugSymbols' because:
+  Caching has been disabled for the task
+Skipping task ':app:stripDebugDebugSymbols' as it is up-to-date.
+Resolve mutations for :app:validateSigningDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:validateSigningDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:validateSigningDebug UP-TO-DATE
+Caching disabled for task ':app:validateSigningDebug' because:
+  Caching has been disabled for the task
+Skipping task ':app:validateSigningDebug' as it is up-to-date.
+Resolve mutations for :app:writeDebugAppMetadata (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:writeDebugAppMetadata (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+Caching disabled for task ':app:writeDebugAppMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app:writeDebugAppMetadata' as it is up-to-date.
+Resolve mutations for :app:writeDebugSigningConfigVersions (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:writeDebugSigningConfigVersions (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+Caching disabled for task ':app:writeDebugSigningConfigVersions' because:
+  Caching has been disabled for the task
+Skipping task ':app:writeDebugSigningConfigVersions' as it is up-to-date.
+Resolve mutations for :app:packageDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:packageDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:packageDebug UP-TO-DATE
+Custom actions are attached to task ':app:packageDebug'.
+Caching disabled for task ':app:packageDebug' because:
+  Caching has been disabled for the task
+Skipping task ':app:packageDebug' as it is up-to-date.
+Resolve mutations for :app:createDebugApkListingFileRedirect (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:createDebugApkListingFileRedirect (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:createDebugApkListingFileRedirect UP-TO-DATE
+Caching disabled for task ':app:createDebugApkListingFileRedirect' because:
+  Caching has been disabled for the task
+Skipping task ':app:createDebugApkListingFileRedirect' as it is up-to-date.
+Resolve mutations for :app:assembleDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+:app:assembleDebug (Thread[#74,Execution worker Thread 3,5,main]) started.
+
+> Task :app:assembleDebug UP-TO-DATE
+Skipping task ':app:assembleDebug' as it has no actions.
+Build 95a94e99-4512-4eeb-a9ad-34a90eed3fe9 is closed
+
+BUILD SUCCESSFUL in 1m 45s
+36 actionable tasks: 36 up-to-date
+Watched directory hierarchies: [C:\Users\SCOFIELD\AndroidStudioProjects\voltflow]
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html

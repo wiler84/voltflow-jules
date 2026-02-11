@@ -1,0 +1,11 @@
+# Copy this file to gradle.properties (do NOT commit secrets) and fill values
+# Example:
+# RELEASE_STORE_FILE=/absolute/path/to/release-keystore.jks
+# RELEASE_KEY_ALIAS=voltflow_key
+# RELEASE_STORE_PASSWORD=your_store_password
+# RELEASE_KEY_PASSWORD=your_key_password
+
+RELEASE_STORE_FILE=
+RELEASE_KEY_ALIAS=
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_PASSWORD=

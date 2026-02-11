@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^\\.\\\\gradlew\\.bat build 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
