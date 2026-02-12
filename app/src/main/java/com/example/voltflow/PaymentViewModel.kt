@@ -9,10 +9,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class PaymentViewModel : ViewModel() {
-    var isProcessing: getValue by mutableStateOf(false)
+    var isProcessing by mutableStateOf(false)
         private set
 
-    var paymentSuccess: getValue by mutableStateOf(false)
+    var paymentSuccess by mutableStateOf(false)
         private set
 
     fun startPayment() {
