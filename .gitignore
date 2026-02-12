@@ -1,20 +1,19 @@
 *.iml
 .gradle
-
-# Local properties (do not commit)
-local.properties
-
-# Gradle
-.gradle/
-build/
-
-# IntelliJ / Android Studio
-.idea/
-
-# Local Keystores
-**/*.jks
-
-# Android Studio captures and outputs
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
 /captures
 .externalNativeBuild
 .cxx
+*.hprof
+*.keystore
+/app/debug.keystore
+firebase-debug.log
+.idx/
