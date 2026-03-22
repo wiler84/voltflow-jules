@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "775819168689",
+    "project_id": "voltflow-15bb5315",
+    "storage_bucket": "voltflow-15bb5315.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775819168689:android:4b28dfa1e21e7550600b90",
+        "android_client_info": {
+          "package_name": "com.android.voltflo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM3BTlZ9IgMYKd23YCxbfilRrLScZSoZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775819168689:android:727567c26e043155600b90",
+        "android_client_info": {
+          "package_name": "com.android.voltflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM3BTlZ9IgMYKd23YCxbfilRrLScZSoZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

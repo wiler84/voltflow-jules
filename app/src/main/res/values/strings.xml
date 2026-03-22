@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">voltflow</string>
+    <string name="pay_now">Pay Now</string>
+    <string name="make_payment">Make Payment</string>
+    <string name="current_balance">Current balance</string>
+    <string name="payment_success">Payment Successful</string>
+    <string name="transaction_token">Transaction Token</string>
+</resources>

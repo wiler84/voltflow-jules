@@ -1,0 +1,44 @@
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if "Windows_NT" == "Windows_NT" setlocal
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set DIRNAME=C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one\ 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if "C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one\" == "" set DIRNAME=. 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set APP_BASE_NAME=gradlew 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set APP_HOME=C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one\ 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>for %i in ("C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one\") do set APP_HOME=%~fi 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set APP_HOME=C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one\ 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set JAVA_EXE=C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot/bin/java.exe 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if exist "C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot/bin/java.exe" goto execute 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set CLASSPATH= 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>"C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "" -jar "C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one\\gradle\wrapper\gradle-wrapper.jar" :app:compileDebugKotlin --console=plain 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if -1 EQU 0 goto mainEnd 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>rem the _cmd.exe /c_ return code! 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>set EXIT_CODE=-1 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if -1 EQU 0 set EXIT_CODE=1 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>if not "" == "" exit -1 
+
+C:\Users\SCOFIELD\Desktop\code 2\voltflow check point one>exit /b -1 

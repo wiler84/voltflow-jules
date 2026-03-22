@@ -1,0 +1,841 @@
+Initialized native services in: C:\Users\SCOFIELD\.gradle\native
+Initialized jansi services in: C:\Users\SCOFIELD\.gradle\native
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe''. Working directory: C:\Users\SCOFIELD\.gradle\.tmp\tmp-jvm501292146362450533probe Command: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe''
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot, JAVA_VERSION=25.0.2, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=25.0.2+10-LTS, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=25.0.2+10-LTS, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Starting process 'Gradle build daemon'. Working directory: C:\Users\SCOFIELD\.gradle\daemon\9.1.0 Command: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\Users\SCOFIELD\.gradle\wrapper\dists\gradle-9.1.0-bin\9agqghryom9wkf8r80qlhnts3\gradle-9.1.0\lib\gradle-daemon-main-9.1.0.jar -javaagent:C:\Users\SCOFIELD\.gradle\wrapper\dists\gradle-9.1.0-bin\9agqghryom9wkf8r80qlhnts3\gradle-9.1.0\lib\agents\gradle-instrumentation-agent-9.1.0.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.1.0
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 19.464 secs.
+The client will now receive all logging from the daemon (pid: 2228). The daemon log file: C:\Users\SCOFIELD\.gradle\daemon\9.1.0\daemon-2228.out.log
+Daemon will be stopped at the end of the build 
+Using 4 worker leases.
+Configuration on demand is an incubating feature.
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot, JAVA_VERSION=25.0.2, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=25.0.2+10-LTS, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=25.0.2+10-LTS, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Watching the file system is configured to be enabled if available
+Now considering [C:\Users\SCOFIELD\AndroidStudioProjects\voltflow] as hierarchies to watch
+File system watching is active
+Starting Build
+Settings evaluated using settings file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\settings.gradle.kts'.
+Using local directory build cache for the root build (location = C:\Users\SCOFIELD\.gradle\caches\build-cache-1, remove unused entries = after 7 days).
+Projects loaded. Root project using build file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\build.gradle.kts'.
+Included projects: [root project 'voltflow', project ':app']
+
+> Configure project :
+Evaluating root project 'voltflow' using build file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.10', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.10', apply: false]
+
+> Configure project :app
+Evaluating project ':app' using build file 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.10']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.10']
+WARNING: The option setting 'android.usesSdkInManifest.disallowed=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.sdk.defaultTargetSdkToCompileSdkIfUnset=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.enableAppCompileTimeRClass=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.r8.optimizedResourceShrinking=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.defaults.buildfeatures.resvalues=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+Using default execution profile
+Build d91f2cab-d6a2-42d5-951a-0c80ba0fad96 is started
+Using Kotlin Gradle Plugin gradle813 variant
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Task name matched 'clean'
+Task name matched 'assembleDebug'
+Selected primary task 'clean' from project :
+Selected primary task 'assembleDebug' from project :
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot\bin\java.exe''. Working directory: C:\Users\SCOFIELD\.gradle\.tmp\tmp-jvm9335121594815696396probe Command: C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot\bin\java.exe -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot\bin\java.exe''
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot, JAVA_VERSION=11.0.29, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=11.0.29+7, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=11.0.29+7, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Starting process 'command 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin\java.exe''. Working directory: C:\Users\SCOFIELD\.gradle\.tmp\tmp-jvm3456530308204441334probe Command: C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin\java.exe -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin\java.exe''
+Received JVM installation metadata from 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot': {JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot, JAVA_VERSION=17.0.18, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.18+8, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.18+8, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+All projects evaluated.
+Tasks to be executed: [task ':app:clean', task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugNativeDebugMetadata', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:checkDebugAarMetadata', task ':app:processDebugNavigationResources', task ':app:compileDebugNavigationResources', task ':app:generateDebugResValues', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:generateDebugAssets', task ':app:mergeDebugAssets', task ':app:compressDebugAssets', task ':app:desugarDebugFileDependencies', task ':app:dexBuilderDebug', task ':app:mergeDebugGlobalSynthetics', task ':app:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:mergeExtDexDebug', task ':app:mergeLibDexDebug', task ':app:mergeProjectDexDebug', task ':app:mergeDebugJniLibFolders', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug']
+Tasks that were excluded: []
+Resolve mutations for :app:clean (Thread[#71,Execution worker,5,main]) started.
+:app:clean (Thread[#71,Execution worker,5,main]) started.
+destroyer locations for task group 0 (Thread[#70,included builds,5,main]) started.
+
+> Task :app:clean
+Caching disabled for task ':app:clean' because:
+  Deletion cannot be cached
+Task ':app:clean' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :app:preBuild (Thread[#71,Execution worker,5,main]) started.
+:app:preBuild (Thread[#70,included builds,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[#70,included builds,5,main]) started.
+:app:preDebugBuild (Thread[#70,included builds,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[#70,included builds,5,main]) started.
+:app:mergeDebugNativeDebugMetadata (Thread[#70,included builds,5,main]) started.
+
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[#70,included builds,5,main]) started.
+:app:checkKotlinGradlePluginConfigurationErrors (Thread[#70,included builds,5,main]) started.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[#70,included builds,5,main]) started.
+:app:checkDebugAarMetadata (Thread[#70,included builds,5,main]) started.
+
+> Task :app:checkDebugAarMetadata
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Caching has been disabled for the task
+Task ':app:checkDebugAarMetadata' is not up-to-date because:
+  Output property 'dummyOutputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\aar_metadata_check\debug\checkDebugAarMetadata has been removed.
+
+Resolve mutations for :app:processDebugNavigationResources (Thread[#71,Execution worker,5,main]) started.
+:app:processDebugNavigationResources (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:processDebugNavigationResources FROM-CACHE
+Build cache key for task ':app:processDebugNavigationResources' is 0d7d2031f80cf171eb00110621379204
+Task ':app:processDebugNavigationResources' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\generated\updated_navigation_xml\debug has been removed.
+Loaded cache entry for task ':app:processDebugNavigationResources' with cache key 0d7d2031f80cf171eb00110621379204
+Resolve mutations for :app:compileDebugNavigationResources (Thread[#71,Execution worker,5,main]) started.
+:app:compileDebugNavigationResources (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:compileDebugNavigationResources FROM-CACHE
+Build cache key for task ':app:compileDebugNavigationResources' is 2c693a4bdb8203667bbdfc980dfba9d9
+Task ':app:compileDebugNavigationResources' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compiled_navigation_res\debug\compileDebugNavigationResources has been removed.
+Loaded cache entry for task ':app:compileDebugNavigationResources' with cache key 2c693a4bdb8203667bbdfc980dfba9d9
+Resolve mutations for :app:generateDebugResValues (Thread[#71,Execution worker,5,main]) started.
+:app:generateDebugResValues (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:generateDebugResValues FROM-CACHE
+Build cache key for task ':app:generateDebugResValues' is 2616e29b728541ccc176613fe99ec73d
+Task ':app:generateDebugResValues' is not up-to-date because:
+  Output property 'outputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\generated\res\resValues\debug has been removed.
+Loaded cache entry for task ':app:generateDebugResValues' with cache key 2616e29b728541ccc176613fe99ec73d
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[#71,Execution worker,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:mapDebugSourceSetPaths
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Caching has been disabled for the task
+Task ':app:mapDebugSourceSetPaths' is not up-to-date because:
+  Output property 'filepathMappingFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\android_res_source_set_path_map\debug\mapDebugSourceSetPaths\file-map.txt has been removed.
+Resolve mutations for :app:generateDebugResources (Thread[#71,Execution worker,5,main]) started.
+:app:generateDebugResources (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:generateDebugResources FROM-CACHE
+Build cache key for task ':app:generateDebugResources' is eeb06b304196eb81d3a2189343303b78
+Task ':app:generateDebugResources' is not up-to-date because:
+  Output property 'validationReportFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\nested_resources_validation_report\debug\generateDebugResources\nestedResourcesValidationReport.txt has been removed.
+Loaded cache entry for task ':app:generateDebugResources' with cache key eeb06b304196eb81d3a2189343303b78
+Resolve mutations for :app:mergeDebugResources (Thread[#71,Execution worker,5,main]) started.
+:app:mergeDebugResources (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:mergeDebugResources FROM-CACHE
+Build cache key for task ':app:mergeDebugResources' is 8884c8d6ca76e9c7bca6cc48cf42f9e3
+Task ':app:mergeDebugResources' is not up-to-date because:
+  Output property 'blameLogOutputFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_res_blame_folder\debug\mergeDebugResources\out has been removed.
+  Output property 'blameLogOutputFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_res_blame_folder\debug\mergeDebugResources\out\multi-v2 has been removed.
+  Output property 'blameLogOutputFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_res_blame_folder\debug\mergeDebugResources\out\multi-v2\mergeDebugResources.json has been removed.
+  and more...
+Loaded cache entry for task ':app:mergeDebugResources' with cache key 8884c8d6ca76e9c7bca6cc48cf42f9e3
+Resolve mutations for :app:packageDebugResources (Thread[#71,Execution worker,5,main]) started.
+:app:packageDebugResources (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:packageDebugResources FROM-CACHE
+Build cache key for task ':app:packageDebugResources' is 9a0356cab43aaef39e281398cbf0ac33
+Task ':app:packageDebugResources' is not up-to-date because:
+  Output property 'dataBindingLayoutInfoOutFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\data_binding_layout_info_type_package\debug\packageDebugResources\out has been removed.
+  Output property 'incrementalFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\incremental\debug\packageDebugResources has been removed.
+  Output property 'incrementalFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\incremental\debug\packageDebugResources\compile-file-map.properties has been removed.
+  and more...
+Loaded cache entry for task ':app:packageDebugResources' with cache key 9a0356cab43aaef39e281398cbf0ac33
+Resolve mutations for :app:parseDebugLocalResources (Thread[#71,Execution worker,5,main]) started.
+:app:parseDebugLocalResources (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:parseDebugLocalResources FROM-CACHE
+Build cache key for task ':app:parseDebugLocalResources' is b05085478646b0515770d5c89e55726d
+Task ':app:parseDebugLocalResources' is not up-to-date because:
+  Output property 'librarySymbolsFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\local_only_symbol_list\debug\parseDebugLocalResources\R-def.txt has been removed.
+Loaded cache entry for task ':app:parseDebugLocalResources' with cache key b05085478646b0515770d5c89e55726d
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[#71,Execution worker,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:createDebugCompatibleScreenManifests
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Caching has been disabled for the task
+Task ':app:createDebugCompatibleScreenManifests' is not up-to-date because:
+  Output property 'outputFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compatible_screen_manifest\debug\createDebugCompatibleScreenManifests has been removed.
+  Output property 'outputFolder' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compatible_screen_manifest\debug\createDebugCompatibleScreenManifests\output-metadata.json has been removed.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[#71,Execution worker,5,main]) started.
+:app:extractDeepLinksDebug (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:extractDeepLinksDebug FROM-CACHE
+Build cache key for task ':app:extractDeepLinksDebug' is 4cd1958f975f3d2c5e348c78f17e5e54
+Task ':app:extractDeepLinksDebug' is not up-to-date because:
+  Output property 'navigationJson' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\navigation_json\debug\extractDeepLinksDebug\navigation.json has been removed.
+Loaded cache entry for task ':app:extractDeepLinksDebug' with cache key 4cd1958f975f3d2c5e348c78f17e5e54
+Resolve mutations for :app:processDebugMainManifest (Thread[#71,Execution worker,5,main]) started.
+:app:processDebugMainManifest (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:processDebugMainManifest FROM-CACHE
+Build cache key for task ':app:processDebugMainManifest' is 8adc2f51fada0901098684f66451745f
+Task ':app:processDebugMainManifest' is not up-to-date because:
+  Output property 'mergeBlameFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\manifest_merge_blame_file\debug\processDebugMainManifest\manifest-merger-blame-debug-report.txt has been removed.
+  Output property 'mergedManifest' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_manifest\debug\processDebugMainManifest\AndroidManifest.xml has been removed.
+  Output property 'reportFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\outputs\logs\manifest-merger-debug-report.txt has been removed.
+Loaded cache entry for task ':app:processDebugMainManifest' with cache key 8adc2f51fada0901098684f66451745f
+Resolve mutations for :app:processDebugManifest (Thread[#71,Execution worker,5,main]) started.
+:app:processDebugManifest (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:processDebugManifest FROM-CACHE
+Build cache key for task ':app:processDebugManifest' is a93ab7d292214b3e1bf957cae5768517
+Task ':app:processDebugManifest' is not up-to-date because:
+  Output property 'multiApkManifestOutputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_manifests\debug\processDebugManifest has been removed.
+  Output property 'multiApkManifestOutputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_manifests\debug\processDebugManifest\AndroidManifest.xml has been removed.
+  Output property 'multiApkManifestOutputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_manifests\debug\processDebugManifest\output-metadata.json has been removed.
+Loaded cache entry for task ':app:processDebugManifest' with cache key a93ab7d292214b3e1bf957cae5768517
+Resolve mutations for :app:processDebugManifestForPackage (Thread[#71,Execution worker,5,main]) started.
+:app:processDebugManifestForPackage (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:processDebugManifestForPackage FROM-CACHE
+Custom actions are attached to task ':app:processDebugManifestForPackage'.
+Build cache key for task ':app:processDebugManifestForPackage' is de669acb98b45b3c669dbaa3e16e6894
+Task ':app:processDebugManifestForPackage' is not up-to-date because:
+  Output property 'packageManifests' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\packaged_manifests\debug\processDebugManifestForPackage has been removed.
+  Output property 'packageManifests' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\packaged_manifests\debug\processDebugManifestForPackage\AndroidManifest.xml has been removed.
+  Output property 'packageManifests' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\packaged_manifests\debug\processDebugManifestForPackage\output-metadata.json has been removed.
+Loaded cache entry for task ':app:processDebugManifestForPackage' with cache key de669acb98b45b3c669dbaa3e16e6894
+Resolve mutations for :app:processDebugResources (Thread[#71,Execution worker,5,main]) started.
+:app:processDebugResources (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:processDebugResources
+Build cache key for task ':app:processDebugResources' is dbb0d5e7e024f1648061d32b7f7889b1
+Task ':app:processDebugResources' is not up-to-date because:
+  Output property 'RClassOutputJar' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compile_and_runtime_r_class_jar\debug\processDebugResources\R.jar has been removed.
+  Output property 'linkedResourcesOutputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\linked_resources_binary_format\debug\processDebugResources has been removed.
+  Output property 'linkedResourcesOutputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\linked_resources_binary_format\debug\processDebugResources\linked-resources-binary-format-debug.ap_ has been removed.
+  and more...
+Loaded cache entry for task ':app:processDebugResources' with cache key dbb0d5e7e024f1648061d32b7f7889b1
+
+> Task :app:processDebugResources FROM-CACHE
+Resolve mutations for :app:compileDebugKotlin (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:compileDebugKotlin (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:compileDebugKotlin
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugAndroidTestKotlin
+Build cache key for task ':app:compileDebugKotlin' is b6bb536f863a800498d3b0605a072f87
+Task ':app:compileDebugKotlin' is not up-to-date because:
+  Output property 'classpathSnapshotProperties.classpathSnapshotDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\kotlin\compileDebugKotlin\classpath-snapshot has been removed.
+  Output property 'classpathSnapshotProperties.classpathSnapshotDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\kotlin\compileDebugKotlin\classpath-snapshot\shrunk-classpath-snapshot.bin has been removed.
+  Output property 'destinationDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\tmp\kotlin-classes\debug has been removed.
+  and more...
+Loaded cache entry for task ':app:compileDebugKotlin' with cache key b6bb536f863a800498d3b0605a072f87
+
+> Task :app:compileDebugKotlin FROM-CACHE
+Resolve mutations for :app:javaPreCompileDebug (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:javaPreCompileDebug (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:javaPreCompileDebug FROM-CACHE
+Build cache key for task ':app:javaPreCompileDebug' is 3e2e3cfd3b074d81c2cf806a4e8693e7
+Task ':app:javaPreCompileDebug' is not up-to-date because:
+  Output property 'annotationProcessorListFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\annotation_processor_list\debug\javaPreCompileDebug\annotationProcessors.json has been removed.
+Loaded cache entry for task ':app:javaPreCompileDebug' with cache key 3e2e3cfd3b074d81c2cf806a4e8693e7
+Resolve mutations for :app:compileDebugJavaWithJavac (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:compileDebugJavaWithJavac (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+Skipping task ':app:compileDebugJavaWithJavac' as it has no source files and no previous output files.
+Resolve mutations for :app:generateDebugAssets (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:generateDebugAssets (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:generateDebugAssets UP-TO-DATE
+Skipping task ':app:generateDebugAssets' as it has no actions.
+Resolve mutations for :app:mergeDebugAssets (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:mergeDebugAssets (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:mergeDebugAssets
+Caching disabled for task ':app:mergeDebugAssets' because:
+  Simple merging task
+Task ':app:mergeDebugAssets' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\assets\debug\mergeDebugAssets has been removed.
+The input changes require a full rebuild for incremental task ':app:mergeDebugAssets'.
+Resolve mutations for :app:compressDebugAssets (Thread[#71,Execution worker,5,main]) started.
+:app:compressDebugAssets (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:compressDebugAssets FROM-CACHE
+Build cache key for task ':app:compressDebugAssets' is cc4c80372e3ad3f828a010db25dbdd65
+Task ':app:compressDebugAssets' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compressed_assets\debug\compressDebugAssets\out has been removed.
+Loaded cache entry for task ':app:compressDebugAssets' with cache key cc4c80372e3ad3f828a010db25dbdd65
+Resolve mutations for :app:desugarDebugFileDependencies (Thread[#71,Execution worker,5,main]) started.
+:app:desugarDebugFileDependencies (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:desugarDebugFileDependencies FROM-CACHE
+Build cache key for task ':app:desugarDebugFileDependencies' is 586cfbea8805ee6a1676647a90847e73
+Task ':app:desugarDebugFileDependencies' is not up-to-date because:
+  Output property 'outputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\external_file_lib_dex_archives\debug\desugarDebugFileDependencies has been removed.
+  Output property 'outputGlobalSynthetics' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_file_lib\debug\desugarDebugFileDependencies has been removed.
+Loaded cache entry for task ':app:desugarDebugFileDependencies' with cache key 586cfbea8805ee6a1676647a90847e73
+Resolve mutations for :app:dexBuilderDebug (Thread[#71,Execution worker,5,main]) started.
+:app:dexBuilderDebug (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:dexBuilderDebug
+Build cache key for task ':app:dexBuilderDebug' is 6e78c83a6bd3b3f18415caa5685c9b97
+Task ':app:dexBuilderDebug' is not up-to-date because:
+  Class path of task ':app:dexBuilderDebug' has changed from 2edd42204ab8dfdee7138036f6cf6534 to f775a7dca9e0ce6830dda816f882bb56.
+The input changes require a full rebuild for incremental task ':app:dexBuilderDebug'.
+Dex builder is incremental : false 
+Processing input C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\tmp\kotlin-classes\debug
+Dexing C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\tmp\kotlin-classes\debug
+Processing input C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compile_and_runtime_r_class_jar\debug\processDebugResources\R.jar
+Dexing 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\tmp\kotlin-classes\debug' to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\tmp\kotlin-classes\debug' to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compile_and_runtime_r_class_jar\debug\processDebugResources\R.jar
+Dexing 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compile_and_runtime_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\8a12386f28970cc7cd4d2c28287aa71dffc660b30818faf70c06a03ec59a7190_0.jar'
+Dexing 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\compile_and_runtime_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\8a12386f28970cc7cd4d2c28287aa71dffc660b30818faf70c06a03ec59a7190_1.jar'
+Done with all dex archive conversions
+Stored cache entry for task ':app:dexBuilderDebug' with cache key 6e78c83a6bd3b3f18415caa5685c9b97
+Resolve mutations for :app:mergeDebugGlobalSynthetics (Thread[#71,Execution worker,5,main]) started.
+:app:mergeDebugGlobalSynthetics (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:mergeDebugGlobalSynthetics
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\49af4131b9f6e59542e61645cce1f0ac\workspace\transformed\material3-adaptive-navigation-suite-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1543e8238f15c3ad4ca431bacb52e594\workspace\transformed\material-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\38a2082938ab9d44cc0a99d60c7c3caf\workspace\transformed\material3-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\df39fc219fed66123635eb27185a92b6\workspace\transformed\foundation-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\13bd0754d1a5610abef2e48fb4ffcf9b\workspace\transformed\material-ripple-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6c66a8d14056ba3c8c6b522d5dd41605\workspace\transformed\adaptive-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6e1925ec6392b11945177e019181a228\workspace\transformed\animation-core-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\96ba0805751e3b70bcf1a212f1c26307\workspace\transformed\animation-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\df8808a649510b3e9a36ff3e0274dd6c\workspace\transformed\foundation-layout-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\91256ef57fdcb2d2f9eac9a52f462d04\workspace\transformed\ui-geometry-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2d56f952d531161a7ecaf74234ff786d\workspace\transformed\ui-unit-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\13b01a4c899b3584c4130d2af593c280\workspace\transformed\ui-tooling-data-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\bfd6452f7a075f747acf636196fae405\workspace\transformed\ui-tooling-preview-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fdfb2893b1f93f694f8aa93ef598246d\workspace\transformed\ui-tooling-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a4157d49058f010b64725eed35ecd138\workspace\transformed\ui-graphics-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5a750fdc7927c35a2cccc68de063f240\workspace\transformed\ui-text-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2b28b18b0cbdc32441427a3286bb922a\workspace\transformed\ui-util-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7321b2dc34b9384d5aaaea1e7a6c52b0\workspace\transformed\transition-1.6.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\44faa41737f8a498ec69fb59effc8f9c\workspace\transformed\autofill-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2d5dccccf70d1c3683d9ff5fc3386356\workspace\transformed\window-core-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d186ef660968994c5b400190090226be\workspace\transformed\graphics-path-1.0.1-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\69a040dc3fa63429c19c5d32306b5038\workspace\transformed\dynamicanimation-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c3f7aabf8a7bc442c17de2f8835fca70\workspace\transformed\window-1.5.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\046ffdcb79de7ac3e449a2490213dbd3\workspace\transformed\loader-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ddc481246c84805c65bfe0d13bd00ff4\workspace\transformed\core-1.17.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5610e9e41c5da11367c39cb611196363\workspace\transformed\legacy-support-core-utils-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2854b23eac23b3dcb74c7104a25a7222\workspace\transformed\navigationevent-compose-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8479d78ecbf72eb18c56b9a13e2c208c\workspace\transformed\navigationevent-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\33335564112b98f1fe7e1bed3debdb25\workspace\transformed\runtime-retain-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a0c37430d360e8a2037a382765271796\workspace\transformed\emoji2-1.4.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f2924987cd751259c0572d2a4ca3a1a1\workspace\transformed\activity-ktx-1.12.3-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\470decfd163102c458b19ea7d0a1d2fe\workspace\transformed\lifecycle-livedata-2.10.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\304dfe65c1e40191a9382b1dd11ca65e\workspace\transformed\lifecycle-process-2.10.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f487d6e34915f6b94700761fdc624663\workspace\transformed\lifecycle-livedata-core-ktx-2.10.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c874c83f40f68d5d2161a85b7fa17188\workspace\transformed\runtime-annotation-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0a63117da1bc2380933c03957c673a63\workspace\transformed\lifecycle-livedata-core-2.10.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\3eb84b8e8d0607d5dde722c76338a372\workspace\transformed\lifecycle-viewmodel-ktx-2.10.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5489b283e8317905f43e6d4ccb98ac39\workspace\transformed\lifecycle-viewmodel-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\4016c33d7aa1e49630511f7d9ef5a7eb\workspace\transformed\lifecycle-common-java8-2.10.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a8be834e1fe7a75fa6c6fece382fa239\workspace\transformed\savedstate-ktx-1.4.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f3d18afff1a2552bf2fdf03541d08bf8\workspace\transformed\savedstate-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1e6d9a311fc9eebf778bfec95cad8042\workspace\transformed\savedstate-compose-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\055ea5ebbfc6293882bffd71799ad376\workspace\transformed\lifecycle-viewmodel-savedstate-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\886a153b5e048b6ebb1d36d9c436dae5\workspace\transformed\lifecycle-viewmodel-2.10.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fe78df0b38e7f10c47187982fd19ebdb\workspace\transformed\lifecycle-common-jvm-2.10.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\63daaaff1f3708e67e35612bc04c8f8f\workspace\transformed\runtime-saveable-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1ef46e58d81dcefc29f4947b216f9ff8\workspace\transformed\lifecycle-runtime-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5b08cfb26a5f28dd6ea5927112636394\workspace\transformed\runtime-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f598f15fd8a73f50769cb126d830c2b5\workspace\transformed\lifecycle-runtime-ktx-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c954b4efaf5721efe7db4986668060b4\workspace\transformed\lifecycle-runtime-compose-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2a9823de171dcc6049cf2cd07117ec01\workspace\transformed\lifecycle-viewmodel-compose-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e296f36a335e98e48fc80ea659b8ca66\workspace\transformed\material-icons-core-release-runtime because:
+  Caching not enabled.
+Build cache key for DexingNoClasspathTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\941adbe0655de5d7c1745d64912e736e\workspace\transformed\material-icons-extended-release-runtime.jar is 7216a9c8d426cbbad21fc196df6b708b
+Running dexing transform non-incrementally for 'C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\941adbe0655de5d7c1745d64912e736e\workspace\transformed\material-icons-extended-release-runtime.jar'
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\dbef699070cfb23c707333b64a8f354e\workspace\transformed\ui-test-manifest-1.10.2-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e13ad42329be4a5af844fe7555013d0\workspace\transformed\activity-1.12.3-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e32a19d3099768f81a9cabf3b74eb7c2\workspace\transformed\activity-compose-1.12.3-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8d07c7428884e11d511784f8739e4e55\workspace\transformed\customview-poolingcontainer-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\06b46ee53ad1d19f48e7d0d9e2921131\workspace\transformed\ui-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5cbaada9d5b5ed6c475d054d19e3ca3c\workspace\transformed\core-ktx-1.17.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d42d4b3c2fba3a4ae7782b4702d6cbb6\workspace\transformed\core-viewtree-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9af9de7f57b0df7e992429d83e32cace\workspace\transformed\kotlinx-coroutines-core-jvm-1.9.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e834234896ba6f10561e5d3ba86913b\workspace\transformed\kotlinx-coroutines-android-1.9.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6af701b55dc286a763cf582abf9be944\workspace\transformed\profileinstaller-1.4.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\00c53d282fcb82ce15db3902331f56f8\workspace\transformed\interpolator-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ffe4a61ff3c663e3475ba91d56726899\workspace\transformed\tracing-1.2.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7c357afa4d168b36767095fc91dc55c2\workspace\transformed\startup-runtime-1.1.1-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\81052c082916d74fc112a4d121420e9c\workspace\transformed\versionedparcelable-1.1.1-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7151adcf74146ae00953db5ad2335431\workspace\transformed\concurrent-futures-1.1.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\661a3260d28ec2a63de61af8e53f3702\workspace\transformed\core-common-2.2.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e88a660b2a09f38dbdc4bb2d8d26746c\workspace\transformed\core-runtime-2.2.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e77be32c007462a093aa51ab4e43a177\workspace\transformed\collection-jvm-1.5.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1e849ffb256f1fa83214c056c4ab82fe\workspace\transformed\collection-ktx-1.5.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ed2850ab49e27845ee20609ebbf37aec\workspace\transformed\localbroadcastmanager-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\97402b88919f6dacdf62f2fc606c1d49\workspace\transformed\annotation-jvm-1.9.1 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\88a64c7bd4021262b326178e3eda27fe\workspace\transformed\print-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e8a74fa4a9ecb34cb5e3ce00414ac87b\workspace\transformed\kotlinx-serialization-core-jvm-1.7.3 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7e0482f3f6f0b42275b557c4b774ed73\workspace\transformed\kotlin-stdlib-2.2.10 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f511f3dc139075af9645ffbedb3adb61\workspace\transformed\annotations-23.0.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c6b942ea51820a3d4ab0346e7841c055\workspace\transformed\listenablefuture-1.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5ac869eb8185b8120e8f8d54172b2de4\workspace\transformed\jspecify-1.0.0 because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9f06842039f4acf6b01299e9d54504b9\workspace\transformed\documentfile-1.0.0-runtime because:
+  Caching not enabled.
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\48cfcdbf81e0117c8cb2eae86178b40b\workspace\transformed\annotation-experimental-1.5.1-runtime because:
+  Caching not enabled.
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\9.1.0\fileHashes\kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\9.1.0\fileHashes\fileHashes.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\9.1.0\fileHashes\resourceHashesCache.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\.gradle\caches\journal-1\file-access.bin
+Stored cache entry for DexingNoClasspathTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\941adbe0655de5d7c1745d64912e736e\workspace\transformed\material-icons-extended-release-runtime.jar with cache key 7216a9c8d426cbbad21fc196df6b708b
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7c3bae67222e33d1d878e87d04f362a6\workspace\transformed\material-icons-extended-release-runtime because:
+  Caching not enabled.
+Build cache key for task ':app:mergeDebugGlobalSynthetics' is 2d4783968eef4ea31d8e52634d486c6a
+Task ':app:mergeDebugGlobalSynthetics' is not up-to-date because:
+  No history is available.
+
+Resolve mutations for :app:processDebugJavaRes (Thread[#70,included builds,5,main]) started.
+:app:processDebugJavaRes (Thread[#70,included builds,5,main]) started.
+
+> Task :app:processDebugJavaRes
+Invalidating in-memory cache of C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\.gradle\buildOutputCleanup\outputFiles.bin
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\main\resources', not found
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\debug\resources', not found
+Caching disabled for task ':app:processDebugJavaRes' because:
+  Caching has been disabled for the task
+Task ':app:processDebugJavaRes' is not up-to-date because:
+  Class path of task ':app:processDebugJavaRes' has changed from 2edd42204ab8dfdee7138036f6cf6534 to f775a7dca9e0ce6830dda816f882bb56.
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\main\resources', not found
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\debug\resources', not found
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\main\resources', not found
+file or directory 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\src\debug\resources', not found
+Invalidating in-memory cache of C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\.gradle\9.1.0\fileHashes\fileHashes.bin
+Invalidating in-memory cache of C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\.gradle\9.1.0\fileHashes\resourceHashesCache.bin
+Resolve mutations for :app:mergeDebugJavaResource (Thread[#70,included builds,5,main]) started.
+:app:mergeDebugJavaResource (Thread[#70,included builds,5,main]) started.
+
+> Task :app:mergeDebugGlobalSynthetics
+Merging to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_dex\debug\mergeDebugGlobalSynthetics' with D8 from all or a subset of dex files in , and from all global synthetics files in C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$10.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$11.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$12.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$13.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$14.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$15.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$16.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$17.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$18.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$19.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$20.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$21.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$22.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$23.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$24.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$25.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$26.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$27.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$28.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$29.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$3.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$30.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$4.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$5.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$6.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$7.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$8.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$189bb62c75bcfefca15217188825228b9f5d863ff61f21e1bd281d31628eaa67$9.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$5ceaae7b79ca5d1869e5b5a4e1327ae46eb261bc97a03ae0d008f563f81626a3$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ComposableSingletons$MainActivityKt$$InternalSyntheticLambda$2$7651b99ddd23beb7d6eddcef31c251dff7bfe253b341bacb864a64dedea39d26$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$00914b124f43926bffbd7a944a33e9de03fc6166a593fa1fe78623ad50e5664a$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$00914b124f43926bffbd7a944a33e9de03fc6166a593fa1fe78623ad50e5664a$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$02dc730f57a4740b2a37d6b3600e7d7fc150429231d3c81ad17598729c6522ec$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$0373a16c317f7b248c53cd2804a421e369344ef83c30f0217918fa1bb5071349$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$0373a16c317f7b248c53cd2804a421e369344ef83c30f0217918fa1bb5071349$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$063290810c19c6c8fcde775310ee0a9fa46dfb8dd73e77af203724c51658f21a$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$063290810c19c6c8fcde775310ee0a9fa46dfb8dd73e77af203724c51658f21a$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$0dce77e134496456b66ca5bfa2d099a64f7b0d0feb71a05866f04bcc179b272c$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$0dce77e134496456b66ca5bfa2d099a64f7b0d0feb71a05866f04bcc179b272c$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$1562f8ce401819169d16f27a884ce2c09b24acba8ab3f682545eb6e2d307ce64$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$1562f8ce401819169d16f27a884ce2c09b24acba8ab3f682545eb6e2d307ce64$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$1562f8ce401819169d16f27a884ce2c09b24acba8ab3f682545eb6e2d307ce64$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$373304fb8fad251cc71d90ab5fbdcf4485e65a76595ad9fc3a7e5735ea1326a2$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$3c59404b4727e5f3d0e151ce96c755038ef9e3e63e758ac10f677790bc4d6389$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$3c59404b4727e5f3d0e151ce96c755038ef9e3e63e758ac10f677790bc4d6389$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$3c59404b4727e5f3d0e151ce96c755038ef9e3e63e758ac10f677790bc4d6389$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$3c59404b4727e5f3d0e151ce96c755038ef9e3e63e758ac10f677790bc4d6389$3.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$3fda78f901cced1c34abe3f923ff496d8cff2952b0b019477ced9754681a039d$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$48ce32a6d29e70ed32398f690fa392b10e0159d54ec1f69728986985ae19f491$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$48ce32a6d29e70ed32398f690fa392b10e0159d54ec1f69728986985ae19f491$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$48ce32a6d29e70ed32398f690fa392b10e0159d54ec1f69728986985ae19f491$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$4ba7ed25318d7253b606f7441843fc3bbfc2a583401b71d7a3441f7d23b41eb7$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$4ba7ed25318d7253b606f7441843fc3bbfc2a583401b71d7a3441f7d23b41eb7$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$562c7163969c8623966802f42598d97e90b1a3ca4644f004fc915a5daa384ce4$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$562c7163969c8623966802f42598d97e90b1a3ca4644f004fc915a5daa384ce4$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$5a430062c87c30df1e4a377c6a682038d039db1cf7f4bd54552114db1d7fca81$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$5a430062c87c30df1e4a377c6a682038d039db1cf7f4bd54552114db1d7fca81$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$5d3615afc540cf46004acf57b7471c8736c66fb4edf57e3a67e4f71063db35dc$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$5d8b2b607293d1a57f7cbd209ce494a8b79653ab18f8cdbf262d6b47e8e04763$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$633e35ec10c034538243c0396f98c2199ca3ba78b00a91ab519a2f67258a2b01$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$66cab671302bd8bc9e1c4d8c2671f34c941ea38b0a13aa4d364fa3083e6b610e$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$66cab671302bd8bc9e1c4d8c2671f34c941ea38b0a13aa4d364fa3083e6b610e$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$66cab671302bd8bc9e1c4d8c2671f34c941ea38b0a13aa4d364fa3083e6b610e$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6c9dc1f5c905dc97007eddac75d2ef294f988dbacf2b581e2c522f5aa367673a$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6c9dc1f5c905dc97007eddac75d2ef294f988dbacf2b581e2c522f5aa367673a$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6c9dc1f5c905dc97007eddac75d2ef294f988dbacf2b581e2c522f5aa367673a$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6c9dc1f5c905dc97007eddac75d2ef294f988dbacf2b581e2c522f5aa367673a$3.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6c9dc1f5c905dc97007eddac75d2ef294f988dbacf2b581e2c522f5aa367673a$4.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6e304b06be24babe781b78e0c27dfff91c1a9788d19daf62115dc67b5a8d1cdc$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6e304b06be24babe781b78e0c27dfff91c1a9788d19daf62115dc67b5a8d1cdc$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6e304b06be24babe781b78e0c27dfff91c1a9788d19daf62115dc67b5a8d1cdc$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$6e304b06be24babe781b78e0c27dfff91c1a9788d19daf62115dc67b5a8d1cdc$3.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$74535713d9a7dfcf4f299d2c69371992ccbc4ebe8ef4b0933ac14fd5faec531c$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$80fd3db98a0f3ea98c6986e7fbde76f343d5ac963a42fc8b46edbcaf3ad85484$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$89d1f19b163c8f4a15044171d89183be8b1dfdbfa463170327eae0fbd979b04e$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$89d1f19b163c8f4a15044171d89183be8b1dfdbfa463170327eae0fbd979b04e$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$9012a004b6699fe22142f8effe296c272fed2d209613a17957ff99fe95ead0b1$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$99fab0b796ca29e7ddcdf314819c926c92a30e4d66edac89dc85b95fdc75d7d6$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$9bf20aaf4d72c04aef124db1062051b526048fe0da107c4bdae1720951956fed$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$b35dbeace51115e5a3dbae05ae6e2653149c22b917f10d434bb83684cb93d65d$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$c1e430eafac3e8599d5b9116d18cb5c5babc7e64f797dafdd9c4074bd8216f7b$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$c1e430eafac3e8599d5b9116d18cb5c5babc7e64f797dafdd9c4074bd8216f7b$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$c1e430eafac3e8599d5b9116d18cb5c5babc7e64f797dafdd9c4074bd8216f7b$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$c9c4128bfc8b066541400c96231b71391d955b09f803bc3528c6e8e36b969f8a$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$c9c4128bfc8b066541400c96231b71391d955b09f803bc3528c6e8e36b969f8a$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d24ea99a62016658aefb53a5810db886d55faf9250dd2317417e1dda9202f4cd$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d24ea99a62016658aefb53a5810db886d55faf9250dd2317417e1dda9202f4cd$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d24ea99a62016658aefb53a5810db886d55faf9250dd2317417e1dda9202f4cd$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d62e227e6dfa8b0d6c7c030391b80593377a3292c808fc90ed846e06ab009cde$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d62e227e6dfa8b0d6c7c030391b80593377a3292c808fc90ed846e06ab009cde$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d62e227e6dfa8b0d6c7c030391b80593377a3292c808fc90ed846e06ab009cde$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d62e227e6dfa8b0d6c7c030391b80593377a3292c808fc90ed846e06ab009cde$3.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d99a4150f60bc6816ce67ec3fb5df69b99425225a28ac5a801a725d22cf156af$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$d99a4150f60bc6816ce67ec3fb5df69b99425225a28ac5a801a725d22cf156af$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$e15b4af76a204d285659fd09a8b0b959b8d1569832244a0fd02a8614e9fcfc76$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$f3148c510cdfefaaceeb2ee579d11822673279ab2456f763ee81bf14e7eadfba$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$f3c06e8895139449fc8b3016189fc45373376cf54d8b8f4ae69a14b37174a842$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$f3c06e8895139449fc8b3016189fc45373376cf54d8b8f4ae69a14b37174a842$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$10.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$11.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$12.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$13.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$14.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$2.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$3.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$4.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$5.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$6.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$7.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$8.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fa7631908063408c1ec231c709c56fd457faba21dfa91e5c26d05e7437799e9b$9.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fee0e111bfd81903f7e7d4f5d55e341b80979cd4a5ba6e352d2b42d854548c67$0.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\MainActivityKt$$InternalSyntheticLambda$2$fee0e111bfd81903f7e7d4f5d55e341b80979cd4a5ba6e352d2b42d854548c67$1.globals, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\global_synthetics_project\debug\dexBuilderDebug\out\com\example\voltflow\ui\theme\ThemeKt$$InternalSyntheticLambda$2$450ebb4c11a4b7f3e61fcd15f63dff61e7988c9b8aae5a5512215bc3f80e3e1f$0.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\49af4131b9f6e59542e61645cce1f0ac\workspace\transformed\material3-adaptive-navigation-suite-runtime\material3-adaptive-navigation-suite-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\38a2082938ab9d44cc0a99d60c7c3caf\workspace\transformed\material3-runtime\material3-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1543e8238f15c3ad4ca431bacb52e594\workspace\transformed\material-runtime\material-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\13bd0754d1a5610abef2e48fb4ffcf9b\workspace\transformed\material-ripple-runtime\material-ripple-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\df39fc219fed66123635eb27185a92b6\workspace\transformed\foundation-runtime\foundation-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\96ba0805751e3b70bcf1a212f1c26307\workspace\transformed\animation-runtime\animation-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\df8808a649510b3e9a36ff3e0274dd6c\workspace\transformed\foundation-layout-runtime\foundation-layout-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6e1925ec6392b11945177e019181a228\workspace\transformed\animation-core-runtime\animation-core-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\13b01a4c899b3584c4130d2af593c280\workspace\transformed\ui-tooling-data-runtime\ui-tooling-data-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5a750fdc7927c35a2cccc68de063f240\workspace\transformed\ui-text-runtime\ui-text-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\bfd6452f7a075f747acf636196fae405\workspace\transformed\ui-tooling-preview-runtime\ui-tooling-preview-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fdfb2893b1f93f694f8aa93ef598246d\workspace\transformed\ui-tooling-runtime\ui-tooling-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a4157d49058f010b64725eed35ecd138\workspace\transformed\ui-graphics-runtime\ui-graphics-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7321b2dc34b9384d5aaaea1e7a6c52b0\workspace\transformed\transition-1.6.0-runtime\transition-1.6.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c3f7aabf8a7bc442c17de2f8835fca70\workspace\transformed\window-1.5.0-runtime\window-1.5.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a0c37430d360e8a2037a382765271796\workspace\transformed\emoji2-1.4.0-runtime\emoji2-1.4.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ddc481246c84805c65bfe0d13bd00ff4\workspace\transformed\core-1.17.0-runtime\core-1.17.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8479d78ecbf72eb18c56b9a13e2c208c\workspace\transformed\navigationevent-runtime\navigationevent-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2854b23eac23b3dcb74c7104a25a7222\workspace\transformed\navigationevent-compose-runtime\navigationevent-compose-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\33335564112b98f1fe7e1bed3debdb25\workspace\transformed\runtime-retain-runtime\runtime-retain-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\470decfd163102c458b19ea7d0a1d2fe\workspace\transformed\lifecycle-livedata-2.10.0-runtime\lifecycle-livedata-2.10.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\304dfe65c1e40191a9382b1dd11ca65e\workspace\transformed\lifecycle-process-2.10.0-runtime\lifecycle-process-2.10.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5489b283e8317905f43e6d4ccb98ac39\workspace\transformed\lifecycle-viewmodel-runtime\lifecycle-viewmodel-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\055ea5ebbfc6293882bffd71799ad376\workspace\transformed\lifecycle-viewmodel-savedstate-runtime\lifecycle-viewmodel-savedstate-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f3d18afff1a2552bf2fdf03541d08bf8\workspace\transformed\savedstate-runtime\savedstate-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1e6d9a311fc9eebf778bfec95cad8042\workspace\transformed\savedstate-compose-runtime\savedstate-compose-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5b08cfb26a5f28dd6ea5927112636394\workspace\transformed\runtime-runtime\runtime-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\63daaaff1f3708e67e35612bc04c8f8f\workspace\transformed\runtime-saveable-runtime\runtime-saveable-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c954b4efaf5721efe7db4986668060b4\workspace\transformed\lifecycle-runtime-compose-runtime\lifecycle-runtime-compose-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fe78df0b38e7f10c47187982fd19ebdb\workspace\transformed\lifecycle-common-jvm-2.10.0\lifecycle-common-jvm-2.10.0_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2a9823de171dcc6049cf2cd07117ec01\workspace\transformed\lifecycle-viewmodel-compose-runtime\lifecycle-viewmodel-compose-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\06b46ee53ad1d19f48e7d0d9e2921131\workspace\transformed\ui-runtime\ui-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e13ad42329be4a5af844fe7555013d0\workspace\transformed\activity-1.12.3-runtime\activity-1.12.3-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e32a19d3099768f81a9cabf3b74eb7c2\workspace\transformed\activity-compose-1.12.3-runtime\activity-compose-1.12.3-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5cbaada9d5b5ed6c475d054d19e3ca3c\workspace\transformed\core-ktx-1.17.0-runtime\core-ktx-1.17.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9af9de7f57b0df7e992429d83e32cace\workspace\transformed\kotlinx-coroutines-core-jvm-1.9.0\kotlinx-coroutines-core-jvm-1.9.0_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e834234896ba6f10561e5d3ba86913b\workspace\transformed\kotlinx-coroutines-android-1.9.0\kotlinx-coroutines-android-1.9.0_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6af701b55dc286a763cf582abf9be944\workspace\transformed\profileinstaller-1.4.0-runtime\profileinstaller-1.4.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e88a660b2a09f38dbdc4bb2d8d26746c\workspace\transformed\core-runtime-2.2.0-runtime\core-runtime-2.2.0-runtime_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e8a74fa4a9ecb34cb5e3ce00414ac87b\workspace\transformed\kotlinx-serialization-core-jvm-1.7.3\kotlinx-serialization-core-jvm-1.7.3_global-synthetics\global.globals, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7e0482f3f6f0b42275b557c4b774ed73\workspace\transformed\kotlin-stdlib-2.2.10\kotlin-stdlib-2.2.10_global-synthetics\global.globals
+Stored cache entry for task ':app:mergeDebugGlobalSynthetics' with cache key 2d4783968eef4ea31d8e52634d486c6a
+
+> Task :app:mergeDebugJavaResource
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\78cacb16b1c1e8a725b586b5a8970b4e\workspace\transformed\material3-adaptive-navigation-suite because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\00fbede5d07848445d716de48d30cc46\workspace\transformed\material3 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9a7d36ae3861777597610e093a52ec24\workspace\transformed\material-ripple because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\710de0d82a045d7d97fc0aabfa188d5f\workspace\transformed\adaptive because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2c6b7b193ed1c7712ff2891f46880e25\workspace\transformed\animation because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d12cf4efbbe62a2c95a1bfd29396aaff\workspace\transformed\foundation-layout because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\cd9b9286ab96bce77f4cd9f2cd1c9965\workspace\transformed\animation-core because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f9f6603149dcc7d66609198871dba9db\workspace\transformed\ui-unit because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\38dda05d662b7212459394444b822146\workspace\transformed\foundation because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\091352d46df4342356cf3f2fef58de87\workspace\transformed\ui-geometry because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1fe2fa7ab5769b64db63119a5e67f68b\workspace\transformed\ui-tooling-data because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f60031cbee30acfb6f667e04ca428f1c\workspace\transformed\ui-util because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a2cd2e91a1ce35eb388b3485b536677d\workspace\transformed\ui-tooling-preview because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5dbd6a3a7b2ef1d21a0abb4f9bd63d1a\workspace\transformed\ui-text because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d4981138b3a605b3af6547cfd35ddb86\workspace\transformed\ui-tooling because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d32e555b8ef1febd989325f262768db3\workspace\transformed\ui-graphics because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6d3907d24ec703a4610277b9d8e79e30\workspace\transformed\autofill-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f55e301264711e6c7c09cbb84f6677d5\workspace\transformed\transition-1.6.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ac215637adf85179176aa9256fa809b2\workspace\transformed\window-1.5.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\675b041135f789ae9fdce395dde8bf1c\workspace\transformed\window-core because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\53a153bae3c39bdfe0ad75e7381dce48\workspace\transformed\dynamicanimation-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\950ec1d2498bd2247ebec1976ff9912b\workspace\transformed\graphics-path-1.0.1 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\eecf82be60dfff2edbf8f2535fb11be3\workspace\transformed\emoji2-1.4.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\495e3dbbc46d5e4b8bfa8fbf8ea308ca\workspace\transformed\legacy-support-core-utils-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\be29ea0ba5c498cc4307389f9348dd64\workspace\transformed\loader-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\acceab1328847e9c010b446edf97aaab\workspace\transformed\core-1.17.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c291f5131e9b0b61e32254279bbb488a\workspace\transformed\navigationevent-compose because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\46a9fd9f9dfa02d8201bcbddfd492502\workspace\transformed\navigationevent because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\78929d3ac6eea79360296d0cd699a5cd\workspace\transformed\runtime-retain because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7f7b005975e7f37e4e36eae361444b9f\workspace\transformed\runtime-annotation because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1c6bc6df332f8b0bdab8553aac51adc3\workspace\transformed\lifecycle-livedata-core-ktx-2.10.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\418f050feb12f7d0d749dadea14bfc04\workspace\transformed\activity-ktx-1.12.3 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0dc607936d4cfbbd3dadb55e7b2169a0\workspace\transformed\lifecycle-livedata-2.10.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8d78ad446cf0e90c51e567bf0aad9ffa\workspace\transformed\lifecycle-process-2.10.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\241bc3f8d8a450cf879e1a7774efe6ef\workspace\transformed\lifecycle-livedata-core-2.10.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e8cc32fbf069add1f192aee80633654c\workspace\transformed\lifecycle-viewmodel-ktx-2.10.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a5b476e6f4ee1efbf9c008f314447ea6\workspace\transformed\lifecycle-viewmodel-2.10.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2a6541385b97b09c0f0a99cbbc910500\workspace\transformed\lifecycle-viewmodel-savedstate because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\20b7b221c43f1c905812b30df842e0f5\workspace\transformed\lifecycle-viewmodel because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a2d473a9ee716e6ed90491166aebe36c\workspace\transformed\savedstate-ktx-1.4.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8826ad6428900518a546f7ec9308c4cd\workspace\transformed\savedstate because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c994035a7b904e6c93a7631db364ecd0\workspace\transformed\runtime because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0684b5639315ae1ce106e1e71cc26cea\workspace\transformed\savedstate-compose because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7762bb31d1ddb6aa067e2cc183b74a97\workspace\transformed\runtime-saveable because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f3e94c5f58b1cef7ab1a93620cbc27de\workspace\transformed\lifecycle-runtime-compose because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c53920657a2c6a446d96adfb073f8c40\workspace\transformed\lifecycle-runtime because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2bf5cd33ccfd5b693099e55409a9f24c\workspace\transformed\lifecycle-runtime-ktx because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e7ac53c81ad99a8bbfb997e53870041\workspace\transformed\lifecycle-viewmodel-compose because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5c3b869d5c1cc66869466085935a5e5b\workspace\transformed\material-icons-core-release because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6ee2381a90edafe9d08b86cda97f4c21\workspace\transformed\ui because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\90e694b5847cddaa66ea6979011aa8d4\workspace\transformed\ui-test-manifest-1.10.2 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\de58d98dfaf721dfd034545caebab55b\workspace\transformed\material-icons-extended-release because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8b65bed4060af8e8a1ec429e59a17658\workspace\transformed\customview-poolingcontainer-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6cdebff6ff1e3dbf21df3339fc69dcb9\workspace\transformed\core-ktx-1.17.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\735be3aa946fa057fa8d0051cc2edd5b\workspace\transformed\activity-1.12.3 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1e1c76fd1ef6503edebf9d0ed4835def\workspace\transformed\core-viewtree-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8eb5ebb7b3759d96a63373d7fb82b7e3\workspace\transformed\activity-compose-1.12.3 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f591e2e3996f305e333d41828c56a997\workspace\transformed\profileinstaller-1.4.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\99e29fc27ec4bd460f560ee16d733fa3\workspace\transformed\interpolator-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fa000cfe2e899f6d65c4dfe084500c63\workspace\transformed\startup-runtime-1.1.1 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9615c09b0fa7b5635cfdb7c2b2898dcf\workspace\transformed\tracing-1.2.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2fbf2c29aa80e9723f9a3043760d81f2\workspace\transformed\versionedparcelable-1.1.1 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\91d0401cc4c1671aae71da1811df70c3\workspace\transformed\core-runtime-2.2.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\37167b6dcd9858ae1893c26223968a96\workspace\transformed\documentfile-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\b8792e4f04ecd9e6b1d041d54df1f2f0\workspace\transformed\localbroadcastmanager-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\dda9b360eb3c630a388007955c066a01\workspace\transformed\annotation-experimental-1.5.1 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5d25b6a9b87e58d7311f751139f4c9a5\workspace\transformed\print-1.0.0 because:
+  Caching not enabled.
+Caching disabled for AarTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\3b3b070adc3309b41e07ce94033791e8\workspace\transformed\material because:
+  Caching not enabled.
+Caching disabled for task ':app:mergeDebugJavaResource' because:
+  Caching has been disabled for the task
+Task ':app:mergeDebugJavaResource' is not up-to-date because:
+  Class path of task ':app:mergeDebugJavaResource' has changed from 2edd42204ab8dfdee7138036f6cf6534 to f775a7dca9e0ce6830dda816f882bb56.
+The input changes require a full rebuild for incremental task ':app:mergeDebugJavaResource'.
+
+Resolve mutations for :app:checkDebugDuplicateClasses (Thread[#71,Execution worker,5,main]) started.
+:app:checkDebugDuplicateClasses (Thread[#71,Execution worker,5,main]) started.
+Resolve mutations for :app:mergeDebugJniLibFolders (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:mergeDebugJniLibFolders (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:mergeDebugJniLibFolders
+Caching disabled for task ':app:mergeDebugJniLibFolders' because:
+  Simple merging task
+Task ':app:mergeDebugJniLibFolders' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_jni_libs\debug\mergeDebugJniLibFolders\out has been removed.
+The input changes require a full rebuild for incremental task ':app:mergeDebugJniLibFolders'.
+Resolve mutations for :app:mergeDebugNativeLibs (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:mergeDebugNativeLibs (Thread[#72,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:validateSigningDebug (Thread[#73,Execution worker Thread 3,5,main]) started.
+:app:validateSigningDebug (Thread[#73,Execution worker Thread 3,5,main]) started.
+
+> Task :app:checkDebugDuplicateClasses
+Caching disabled for task ':app:checkDebugDuplicateClasses' because:
+  Caching has been disabled for the task
+Task ':app:checkDebugDuplicateClasses' is not up-to-date because:
+  Output property 'dummyOutputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\duplicate_classes_check\debug\checkDebugDuplicateClasses has been removed.
+
+> Task :app:mergeDebugNativeLibs
+Caching disabled for task ':app:mergeDebugNativeLibs' because:
+  Caching has been disabled for the task
+Task ':app:mergeDebugNativeLibs' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out has been removed.
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib has been removed.
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\arm64-v8a has been removed.
+  and more...
+
+> Task :app:validateSigningDebug
+Caching disabled for task ':app:validateSigningDebug' because:
+  Caching has been disabled for the task
+Task ':app:validateSigningDebug' is not up-to-date because:
+  Output property 'dummyOutputDirectory' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\validate_signing_config\debug\validateSigningDebug has been removed.
+Resolve mutations for :app:stripDebugDebugSymbols (Thread[#73,Execution worker Thread 3,5,main]) started.
+:app:stripDebugDebugSymbols (Thread[#73,Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:writeDebugAppMetadata (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:writeDebugAppMetadata (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:writeDebugAppMetadata
+Caching disabled for task ':app:writeDebugAppMetadata' because:
+  Caching has been disabled for the task
+Task ':app:writeDebugAppMetadata' is not up-to-date because:
+  Output property 'outputFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\app_metadata\debug\writeDebugAppMetadata\app-metadata.properties has been removed.
+Resolve mutations for :app:writeDebugSigningConfigVersions (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:writeDebugSigningConfigVersions (Thread[#72,Execution worker Thread 2,5,main]) started.
+
+> Task :app:stripDebugDebugSymbols
+Caching disabled for task ':app:stripDebugDebugSymbols' because:
+  Caching has been disabled for the task
+Task ':app:stripDebugDebugSymbols' is not up-to-date because:
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out has been removed.
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out\lib has been removed.
+  Output property 'outputDir' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out\lib\arm64-v8a has been removed.
+  and more...
+The input changes require a full rebuild for incremental task ':app:stripDebugDebugSymbols'.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\SCOFIELD\AppData\Local\Android\Sdk
+C/C++: NDK side-by-side folder from sdkFolder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk does not exist
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk\28.2.13676358 does not exist. Ignoring.
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk-bundle does not exist. Ignoring.
+Unable to strip library 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\arm64-v8a\libandroidx.graphics.path.so' due to missing strip tool for ABI 'arm64-v8a'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\SCOFIELD\AppData\Local\Android\Sdk
+C/C++: NDK side-by-side folder from sdkFolder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk does not exist
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk\28.2.13676358 does not exist. Ignoring.
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk-bundle does not exist. Ignoring.
+Unable to strip library 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\x86\libandroidx.graphics.path.so' due to missing strip tool for ABI 'x86'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\SCOFIELD\AppData\Local\Android\Sdk
+C/C++: NDK side-by-side folder from sdkFolder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk does not exist
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk\28.2.13676358 does not exist. Ignoring.
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk-bundle does not exist. Ignoring.
+Unable to strip library 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\x86_64\libandroidx.graphics.path.so' due to missing strip tool for ABI 'x86_64'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\SCOFIELD\AppData\Local\Android\Sdk
+C/C++: NDK side-by-side folder from sdkFolder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk does not exist
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk\28.2.13676358 does not exist. Ignoring.
+C/C++: Folder C:\Users\SCOFIELD\AppData\Local\Android\Sdk\ndk-bundle does not exist. Ignoring.
+Unable to strip library 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\armeabi-v7a\libandroidx.graphics.path.so' due to missing strip tool for ABI 'armeabi-v7a'. Packaging it as is.
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
+
+> Task :app:writeDebugSigningConfigVersions
+Caching disabled for task ':app:writeDebugSigningConfigVersions' because:
+  Caching has been disabled for the task
+Task ':app:writeDebugSigningConfigVersions' is not up-to-date because:
+  Output property 'outputFile' file C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\signing_config_versions\debug\writeDebugSigningConfigVersions\signing-config-versions.json has been removed.
+Resolve mutations for :app:mergeExtDexDebug (Thread[#72,Execution worker Thread 2,5,main]) started.
+:app:mergeExtDexDebug (Thread[#72,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:mergeLibDexDebug (Thread[#73,Execution worker Thread 3,5,main]) started.
+:app:mergeLibDexDebug (Thread[#73,Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:mergeProjectDexDebug (Thread[#71,Execution worker,5,main]) started.
+:app:mergeProjectDexDebug (Thread[#71,Execution worker,5,main]) started.
+
+> Task :app:mergeExtDexDebug
+Caching disabled for DexingOutputSplitTransform: C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7c3bae67222e33d1d878e87d04f362a6\workspace\transformed\material-icons-extended-release-runtime because:
+  Caching not enabled.
+Build cache key for task ':app:mergeExtDexDebug' is 9bc76fbfd4565b14546bb7f7fddfe253
+Task ':app:mergeExtDexDebug' is not up-to-date because:
+  Class path of task ':app:mergeExtDexDebug' has changed from bbdf6f64faff847a5cc4ece26b7998fc to f775a7dca9e0ce6830dda816f882bb56.
+The input changes require a full rebuild for incremental task ':app:mergeExtDexDebug'.
+
+> Task :app:mergeLibDexDebug
+Build cache key for task ':app:mergeLibDexDebug' is ef432d321bc08f2e3e99facd0292fd80
+Task ':app:mergeLibDexDebug' is not up-to-date because:
+  Class path of task ':app:mergeLibDexDebug' has changed from bbdf6f64faff847a5cc4ece26b7998fc to f775a7dca9e0ce6830dda816f882bb56.
+The input changes require a full rebuild for incremental task ':app:mergeLibDexDebug'.
+Stored cache entry for task ':app:mergeLibDexDebug' with cache key ef432d321bc08f2e3e99facd0292fd80
+
+> Task :app:mergeProjectDexDebug
+Build cache key for task ':app:mergeProjectDexDebug' is 6ed98b84e947be0c59b6a21403318603
+Task ':app:mergeProjectDexDebug' is not up-to-date because:
+  Class path of task ':app:mergeProjectDexDebug' has changed from 2edd42204ab8dfdee7138036f6cf6534 to f775a7dca9e0ce6830dda816f882bb56.
+The input changes require a full rebuild for incremental task ':app:mergeProjectDexDebug'.
+Merging to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\dex\debug\mergeProjectDexDebug\0' with D8 from all or a subset of dex files in C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\8a12386f28970cc7cd4d2c28287aa71dffc660b30818faf70c06a03ec59a7190_0.jar, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\8a12386f28970cc7cd4d2c28287aa71dffc660b30818faf70c06a03ec59a7190_1.jar, and from all global synthetics files in 
+Merging to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\dex\debug\mergeProjectDexDebug\4' with D8 from all or a subset of dex files in C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\dex\debug\mergeProjectDexDebug\15' with D8 from all or a subset of dex files in C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Stored cache entry for task ':app:mergeProjectDexDebug' with cache key 6ed98b84e947be0c59b6a21403318603
+
+> Task :app:mergeExtDexDebug
+Merging to 'C:\Users\SCOFIELD\AndroidStudioProjects\voltflow\app\build\intermediates\dex\debug\mergeExtDexDebug' with D8 from all or a subset of dex files in C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\49af4131b9f6e59542e61645cce1f0ac\workspace\transformed\material3-adaptive-navigation-suite-runtime\material3-adaptive-navigation-suite-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\38a2082938ab9d44cc0a99d60c7c3caf\workspace\transformed\material3-runtime\material3-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1543e8238f15c3ad4ca431bacb52e594\workspace\transformed\material-runtime\material-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\13bd0754d1a5610abef2e48fb4ffcf9b\workspace\transformed\material-ripple-runtime\material-ripple-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6c66a8d14056ba3c8c6b522d5dd41605\workspace\transformed\adaptive-runtime\adaptive-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\df39fc219fed66123635eb27185a92b6\workspace\transformed\foundation-runtime\foundation-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\96ba0805751e3b70bcf1a212f1c26307\workspace\transformed\animation-runtime\animation-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\df8808a649510b3e9a36ff3e0274dd6c\workspace\transformed\foundation-layout-runtime\foundation-layout-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6e1925ec6392b11945177e019181a228\workspace\transformed\animation-core-runtime\animation-core-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\13b01a4c899b3584c4130d2af593c280\workspace\transformed\ui-tooling-data-runtime\ui-tooling-data-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2d56f952d531161a7ecaf74234ff786d\workspace\transformed\ui-unit-runtime\ui-unit-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\91256ef57fdcb2d2f9eac9a52f462d04\workspace\transformed\ui-geometry-runtime\ui-geometry-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2b28b18b0cbdc32441427a3286bb922a\workspace\transformed\ui-util-runtime\ui-util-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5a750fdc7927c35a2cccc68de063f240\workspace\transformed\ui-text-runtime\ui-text-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\bfd6452f7a075f747acf636196fae405\workspace\transformed\ui-tooling-preview-runtime\ui-tooling-preview-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fdfb2893b1f93f694f8aa93ef598246d\workspace\transformed\ui-tooling-runtime\ui-tooling-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a4157d49058f010b64725eed35ecd138\workspace\transformed\ui-graphics-runtime\ui-graphics-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\44faa41737f8a498ec69fb59effc8f9c\workspace\transformed\autofill-1.0.0-runtime\autofill-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7321b2dc34b9384d5aaaea1e7a6c52b0\workspace\transformed\transition-1.6.0-runtime\transition-1.6.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2d5dccccf70d1c3683d9ff5fc3386356\workspace\transformed\window-core-runtime\window-core-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c3f7aabf8a7bc442c17de2f8835fca70\workspace\transformed\window-1.5.0-runtime\window-1.5.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d186ef660968994c5b400190090226be\workspace\transformed\graphics-path-1.0.1-runtime\graphics-path-1.0.1-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\69a040dc3fa63429c19c5d32306b5038\workspace\transformed\dynamicanimation-1.0.0-runtime\dynamicanimation-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\a0c37430d360e8a2037a382765271796\workspace\transformed\emoji2-1.4.0-runtime\emoji2-1.4.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5610e9e41c5da11367c39cb611196363\workspace\transformed\legacy-support-core-utils-1.0.0-runtime\legacy-support-core-utils-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\046ffdcb79de7ac3e449a2490213dbd3\workspace\transformed\loader-1.0.0-runtime\loader-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ddc481246c84805c65bfe0d13bd00ff4\workspace\transformed\core-1.17.0-runtime\core-1.17.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8479d78ecbf72eb18c56b9a13e2c208c\workspace\transformed\navigationevent-runtime\navigationevent-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2854b23eac23b3dcb74c7104a25a7222\workspace\transformed\navigationevent-compose-runtime\navigationevent-compose-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\33335564112b98f1fe7e1bed3debdb25\workspace\transformed\runtime-retain-runtime\runtime-retain-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c874c83f40f68d5d2161a85b7fa17188\workspace\transformed\runtime-annotation-runtime\runtime-annotation-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\470decfd163102c458b19ea7d0a1d2fe\workspace\transformed\lifecycle-livedata-2.10.0-runtime\lifecycle-livedata-2.10.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\304dfe65c1e40191a9382b1dd11ca65e\workspace\transformed\lifecycle-process-2.10.0-runtime\lifecycle-process-2.10.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0a63117da1bc2380933c03957c673a63\workspace\transformed\lifecycle-livedata-core-2.10.0-runtime\lifecycle-livedata-core-2.10.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5489b283e8317905f43e6d4ccb98ac39\workspace\transformed\lifecycle-viewmodel-runtime\lifecycle-viewmodel-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\055ea5ebbfc6293882bffd71799ad376\workspace\transformed\lifecycle-viewmodel-savedstate-runtime\lifecycle-viewmodel-savedstate-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f3d18afff1a2552bf2fdf03541d08bf8\workspace\transformed\savedstate-runtime\savedstate-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1e6d9a311fc9eebf778bfec95cad8042\workspace\transformed\savedstate-compose-runtime\savedstate-compose-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5b08cfb26a5f28dd6ea5927112636394\workspace\transformed\runtime-runtime\runtime-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\63daaaff1f3708e67e35612bc04c8f8f\workspace\transformed\runtime-saveable-runtime\runtime-saveable-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c954b4efaf5721efe7db4986668060b4\workspace\transformed\lifecycle-runtime-compose-runtime\lifecycle-runtime-compose-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\fe78df0b38e7f10c47187982fd19ebdb\workspace\transformed\lifecycle-common-jvm-2.10.0\lifecycle-common-jvm-2.10.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\1ef46e58d81dcefc29f4947b216f9ff8\workspace\transformed\lifecycle-runtime-runtime\lifecycle-runtime-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\2a9823de171dcc6049cf2cd07117ec01\workspace\transformed\lifecycle-viewmodel-compose-runtime\lifecycle-viewmodel-compose-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7c3bae67222e33d1d878e87d04f362a6\workspace\transformed\material-icons-extended-release-runtime\material-icons-extended-release-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e296f36a335e98e48fc80ea659b8ca66\workspace\transformed\material-icons-core-release-runtime\material-icons-core-release-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\06b46ee53ad1d19f48e7d0d9e2921131\workspace\transformed\ui-runtime\ui-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e13ad42329be4a5af844fe7555013d0\workspace\transformed\activity-1.12.3-runtime\activity-1.12.3-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e32a19d3099768f81a9cabf3b74eb7c2\workspace\transformed\activity-compose-1.12.3-runtime\activity-compose-1.12.3-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\8d07c7428884e11d511784f8739e4e55\workspace\transformed\customview-poolingcontainer-1.0.0-runtime\customview-poolingcontainer-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5cbaada9d5b5ed6c475d054d19e3ca3c\workspace\transformed\core-ktx-1.17.0-runtime\core-ktx-1.17.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\d42d4b3c2fba3a4ae7782b4702d6cbb6\workspace\transformed\core-viewtree-1.0.0-runtime\core-viewtree-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9af9de7f57b0df7e992429d83e32cace\workspace\transformed\kotlinx-coroutines-core-jvm-1.9.0\kotlinx-coroutines-core-jvm-1.9.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\0e834234896ba6f10561e5d3ba86913b\workspace\transformed\kotlinx-coroutines-android-1.9.0\kotlinx-coroutines-android-1.9.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\00c53d282fcb82ce15db3902331f56f8\workspace\transformed\interpolator-1.0.0-runtime\interpolator-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\6af701b55dc286a763cf582abf9be944\workspace\transformed\profileinstaller-1.4.0-runtime\profileinstaller-1.4.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7c357afa4d168b36767095fc91dc55c2\workspace\transformed\startup-runtime-1.1.1-runtime\startup-runtime-1.1.1-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ffe4a61ff3c663e3475ba91d56726899\workspace\transformed\tracing-1.2.0-runtime\tracing-1.2.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\81052c082916d74fc112a4d121420e9c\workspace\transformed\versionedparcelable-1.1.1-runtime\versionedparcelable-1.1.1-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7151adcf74146ae00953db5ad2335431\workspace\transformed\concurrent-futures-1.1.0\concurrent-futures-1.1.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e88a660b2a09f38dbdc4bb2d8d26746c\workspace\transformed\core-runtime-2.2.0-runtime\core-runtime-2.2.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\661a3260d28ec2a63de61af8e53f3702\workspace\transformed\core-common-2.2.0\core-common-2.2.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e77be32c007462a093aa51ab4e43a177\workspace\transformed\collection-jvm-1.5.0\collection-jvm-1.5.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\9f06842039f4acf6b01299e9d54504b9\workspace\transformed\documentfile-1.0.0-runtime\documentfile-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\ed2850ab49e27845ee20609ebbf37aec\workspace\transformed\localbroadcastmanager-1.0.0-runtime\localbroadcastmanager-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\88a64c7bd4021262b326178e3eda27fe\workspace\transformed\print-1.0.0-runtime\print-1.0.0-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\97402b88919f6dacdf62f2fc606c1d49\workspace\transformed\annotation-jvm-1.9.1\annotation-jvm-1.9.1_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\e8a74fa4a9ecb34cb5e3ce00414ac87b\workspace\transformed\kotlinx-serialization-core-jvm-1.7.3\kotlinx-serialization-core-jvm-1.7.3_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\48cfcdbf81e0117c8cb2eae86178b40b\workspace\transformed\annotation-experimental-1.5.1-runtime\annotation-experimental-1.5.1-runtime_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\7e0482f3f6f0b42275b557c4b774ed73\workspace\transformed\kotlin-stdlib-2.2.10\kotlin-stdlib-2.2.10_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\f511f3dc139075af9645ffbedb3adb61\workspace\transformed\annotations-23.0.0\annotations-23.0.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\c6b942ea51820a3d4ab0346e7841c055\workspace\transformed\listenablefuture-1.0\listenablefuture-1.0_dex, C:\Users\SCOFIELD\.gradle\caches\9.1.0\transforms\5ac869eb8185b8120e8f8d54172b2de4\workspace\transformed\jspecify-1.0.0\jspecify-1.0.0_dex, and from all global synthetics files in 
+Stored cache entry for task ':app:mergeExtDexDebug' with cache key 9bc76fbfd4565b14546bb7f7fddfe253
+Resolve mutations for :app:packageDebug (Thread[#70,included builds,5,main]) started.
+:app:packageDebug (Thread[#70,included builds,5,main]) started.
+
+> Task :app:packageDebug
+Custom actions are attached to task ':app:packageDebug'.
+Caching disabled for task ':app:packageDebug' because:
+  Caching has been disabled for the task
+Task ':app:packageDebug' is not up-to-date because:
+  Class path of task ':app:packageDebug' has changed from 2edd42204ab8dfdee7138036f6cf6534 to f775a7dca9e0ce6830dda816f882bb56.
+The input changes require a full rebuild for incremental task ':app:packageDebug'.
+Resolve mutations for :app:createDebugApkListingFileRedirect (Thread[#70,included builds,5,main]) started.
+:app:createDebugApkListingFileRedirect (Thread[#70,included builds,5,main]) started.
+
+> Task :app:createDebugApkListingFileRedirect
+Caching disabled for task ':app:createDebugApkListingFileRedirect' because:
+  Caching has been disabled for the task
+Task ':app:createDebugApkListingFileRedirect' is not up-to-date because:
+  Class path of task ':app:createDebugApkListingFileRedirect' has changed from 2edd42204ab8dfdee7138036f6cf6534 to f775a7dca9e0ce6830dda816f882bb56.
+Resolve mutations for :app:assembleDebug (Thread[#70,included builds,5,main]) started.
+:app:assembleDebug (Thread[#70,included builds,5,main]) started.
+
+> Task :app:assembleDebug
+Skipping task ':app:assembleDebug' as it has no actions.
+Build d91f2cab-d6a2-42d5-951a-0c80ba0fad96 is closed
+
+BUILD SUCCESSFUL in 10m 34s
+37 actionable tasks: 21 executed, 16 from cache
+Watched directory hierarchies: [C:\Users\SCOFIELD\AndroidStudioProjects\voltflow]
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html

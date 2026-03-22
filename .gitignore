@@ -1,0 +1,20 @@
+*.iml
+.gradle
+
+# Local properties (do not commit)
+local.properties
+
+# Gradle
+.gradle/
+build/
+
+# IntelliJ / Android Studio
+.idea/
+
+# Local Keystores
+**/*.jks
+
+# Android Studio captures and outputs
+/captures
+.externalNativeBuild
+.cxx
