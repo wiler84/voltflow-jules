@@ -20,6 +20,8 @@ data class RealtimeStreams(
     val paymentMethods: Flow<List<PaymentMethod>>,
     val transactions: Flow<List<TransactionRecord>>,
     val notifications: Flow<List<AppNotification>>,
+    val billingAccounts: Flow<List<BillingAccount>>,
+    val bills: Flow<List<Bill>>,
     val devices: Flow<List<ConnectedDevice>>,
 )
 
@@ -74,6 +76,12 @@ class SupabaseRealtimeService(
         val notificationsFlow = activeChannel.postgresListDataFlow<AppNotification, String>(schema = "public", table = "notifications", primaryKey = AppNotification::id)
             .map { list: List<AppNotification> -> list.filter { it.userId == session.userId } }
             
+        val billingAccountsFlow = activeChannel.postgresListDataFlow<BillingAccount, String>(schema = "public", table = "billing_accounts", primaryKey = BillingAccount::id)
+            .map { list: List<BillingAccount> -> list.filter { it.userId == session.userId } }
+
+        val billsFlow = activeChannel.postgresListDataFlow<Bill, String>(schema = "public", table = "bills", primaryKey = Bill::id)
+            .map { list: List<Bill> -> list.filter { it.userId == session.userId } }
+
         val devicesFlow = activeChannel.postgresListDataFlow<ConnectedDevice, String>(schema = "public", table = "connected_devices", primaryKey = ConnectedDevice::id)
             .map { list: List<ConnectedDevice> -> list.filter { it.userId == session.userId } }
 
@@ -86,6 +94,8 @@ class SupabaseRealtimeService(
             paymentMethods = methodsFlow,
             transactions = transactionsFlow,
             notifications = notificationsFlow,
+            billingAccounts = billingAccountsFlow,
+            bills = billsFlow,
             devices = devicesFlow,
         )
     }

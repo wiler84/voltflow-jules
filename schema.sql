@@ -7,6 +7,9 @@ create table if not exists profiles (
     last_name text not null default '',
     email text not null default '',
     phone text,
+    location text default '',
+    avatar_url text default '',
+    dark_mode boolean not null default false,
     account_status text not null default 'Pending',
     created_at timestamptz not null default timezone('utc', now()),
     updated_at timestamptz not null default timezone('utc', now())
@@ -63,6 +66,7 @@ create table if not exists transactions (
     amount numeric not null,
     currency text not null default 'USD',
     status text not null,
+    meter_number text,
     payment_method text not null,
     payment_method_id uuid,
     processor_reference text not null default '',
@@ -86,12 +90,56 @@ create table if not exists notifications (
     created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists billing_accounts (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null,
+    provider_name text not null,
+    account_masked text not null,
+    meter_number text not null,
+    utility_type text not null default 'electricity',
+    is_default boolean not null default false,
+    created_at timestamptz not null default timezone('utc', now()),
+    updated_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists bills (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null,
+    billing_account_id uuid,
+    amount_due numeric not null,
+    due_date date not null,
+    status text not null default 'open',
+    created_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists wallet_transactions (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null,
+    kind text not null,
+    amount numeric not null,
+    method_label text not null,
+    occurred_at timestamptz not null default timezone('utc', now()),
+    created_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists usage_metrics (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null,
+    period_start date not null,
+    period_end date not null,
+    kwh_used numeric not null default 0,
+    amount_spent numeric not null default 0,
+    created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists autopay_settings (
     user_id uuid primary key,
     enabled boolean not null default false,
     payment_method_id uuid,
+    meter_number text,
     amount_limit numeric not null default 0,
     billing_cycle text not null default 'monthly',
+    payment_day int,
     billing_day int,
     timezone text default 'UTC',
     next_run_at timestamptz,
@@ -146,6 +194,10 @@ create index if not exists idx_notifications_user_created_at on notifications (u
 create index if not exists idx_payment_methods_user_default on payment_methods (user_id, is_default);
 create index if not exists idx_connected_devices_user_last_active on connected_devices (user_id, last_active desc);
 create index if not exists idx_payments_user_created_at on payments (user_id, created_at desc);
+create index if not exists idx_billing_accounts_user_default on billing_accounts (user_id, is_default);
+create index if not exists idx_bills_user_created_at on bills (user_id, created_at desc);
+create index if not exists idx_wallet_transactions_user_created_at on wallet_transactions (user_id, created_at desc);
+create index if not exists idx_usage_metrics_user_period on usage_metrics (user_id, period_start desc);
 
 alter table profiles enable row level security;
 alter table wallets enable row level security;
@@ -154,6 +206,10 @@ alter table payment_methods enable row level security;
 alter table payments enable row level security;
 alter table transactions enable row level security;
 alter table notifications enable row level security;
+alter table billing_accounts enable row level security;
+alter table bills enable row level security;
+alter table wallet_transactions enable row level security;
+alter table usage_metrics enable row level security;
 alter table autopay_settings enable row level security;
 alter table security_settings enable row level security;
 alter table connected_devices enable row level security;
@@ -195,6 +251,26 @@ create policy "notifications owner" on notifications for all
     using (auth.uid() = user_id)
     with check (auth.uid() = user_id);
 
+drop policy if exists "billing accounts owner" on billing_accounts;
+create policy "billing accounts owner" on billing_accounts for all
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+drop policy if exists "bills owner" on bills;
+create policy "bills owner" on bills for all
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+drop policy if exists "wallet transactions owner" on wallet_transactions;
+create policy "wallet transactions owner" on wallet_transactions for all
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+drop policy if exists "usage metrics owner" on usage_metrics;
+create policy "usage metrics owner" on usage_metrics for all
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
 drop policy if exists "autopay owner" on autopay_settings;
 create policy "autopay owner" on autopay_settings for all
     using (auth.uid() = user_id)
@@ -229,13 +305,19 @@ alter table notifications add column if not exists read_at timestamptz;
 alter table notifications add column if not exists action_url text;
 alter table notifications add column if not exists metadata jsonb not null default '{}'::jsonb;
 alter table autopay_settings add column if not exists billing_day int;
+alter table autopay_settings add column if not exists payment_day int;
+alter table autopay_settings add column if not exists meter_number text;
 alter table autopay_settings add column if not exists timezone text default 'UTC';
 alter table autopay_settings add column if not exists next_run_at timestamptz;
 alter table autopay_settings add column if not exists last_run_at timestamptz;
 alter table autopay_settings add column if not exists utility_types text[] not null default '{}'::text[];
 alter table autopay_settings add column if not exists status text not null default 'active';
 alter table profiles add column if not exists account_status text not null default 'Pending';
+alter table profiles add column if not exists location text default '';
+alter table profiles add column if not exists avatar_url text default '';
+alter table profiles add column if not exists dark_mode boolean not null default false;
 alter table security_settings add column if not exists biometric_enabled boolean not null default false;
 alter table security_settings add column if not exists mfa_enabled boolean not null default false;
 alter table security_settings add column if not exists pin_enabled boolean not null default false;
 alter table security_settings add column if not exists auto_lock_minutes int not null default 1;
+alter table transactions add column if not exists meter_number text;

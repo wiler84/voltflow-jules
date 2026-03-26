@@ -62,6 +62,8 @@ class SupabaseService(context: Context) {
     private val anonKey = BuildConfig.SUPABASE_ANON_KEY.trim()
 
     fun isConfigured(): Boolean = supabaseUrl.isNotBlank() && anonKey.isNotBlank()
+    fun supabaseUrl(): String = supabaseUrl
+    fun anonKey(): String = anonKey
 
     fun currentSession(): SessionSnapshot? {
         val raw = prefs.getString(SESSION_KEY, null) ?: return null
@@ -149,6 +151,17 @@ class SupabaseService(context: Context) {
     suspend fun fetchUsage(userId: String): UsageMetrics? = fetchListSafe<UsageMetrics>("usage", userId).firstOrNull()
     suspend fun fetchAutopay(userId: String): AutopaySettings? = fetchListSafe<AutopaySettings>("autopay_settings", userId).firstOrNull()
     suspend fun fetchSecuritySettings(userId: String): SecuritySettings? = fetchListSafe<SecuritySettings>("security_settings", userId).firstOrNull()
+    suspend fun fetchBillingAccounts(userId: String): List<BillingAccount> =
+        fetchListSafe("billing_accounts", userId, order = "is_default.desc,created_at.desc")
+
+    suspend fun fetchBills(userId: String, limit: Int? = null): List<Bill> =
+        fetchListSafe("bills", userId, order = "created_at.desc", limit = limit)
+
+    suspend fun fetchWalletTransactions(userId: String, limit: Int? = null): List<WalletTransaction> =
+        fetchListSafe("wallet_transactions", userId, order = "occurred_at.desc", limit = limit)
+
+    suspend fun fetchUsageMetrics(userId: String): List<UsageMetricPeriod> =
+        fetchListSafe("usage_metrics", userId, order = "period_start.desc")
 
     suspend fun fetchPaymentMethods(userId: String): List<PaymentMethod> =
         fetchListSafe("payment_methods", userId, order = "is_default.desc,created_at.desc")
@@ -198,6 +211,30 @@ class SupabaseService(context: Context) {
         insert("notifications", notification)
     }
 
+    suspend fun addBillingAccount(account: BillingAccount) {
+        insert("billing_accounts", account)
+    }
+
+    suspend fun addBill(bill: Bill) {
+        insert("bills", bill)
+    }
+
+    suspend fun addWalletTransaction(transaction: WalletTransaction) {
+        insert("wallet_transactions", transaction)
+    }
+
+    suspend fun addUsageMetric(metric: UsageMetricPeriod) {
+        insert("usage_metrics", metric)
+    }
+
+    suspend fun upsertBillingAccount(account: BillingAccount) {
+        upsert("billing_accounts", account, conflictColumn = "id")
+    }
+
+    suspend fun upsertBill(bill: Bill) {
+        upsert("bills", bill, conflictColumn = "id")
+    }
+
     suspend fun addAnalyticsEvent(event: AnalyticsEvent) {
         insert("analytics_events", event)
     }
@@ -208,6 +245,19 @@ class SupabaseService(context: Context) {
 
     suspend fun upsertDevice(device: ConnectedDevice) {
         upsert("connected_devices", device, conflictColumn = "user_id,device_id")
+    }
+
+    suspend fun markNotificationRead(userId: String, notificationId: String) {
+        val session = requireValidSession()
+        val response = client.post("$supabaseUrl/rest/v1/notifications") {
+            restHeaders(session.accessToken)
+            parameter("id", "eq.$notificationId")
+            parameter("user_id", "eq.$userId")
+            header("Prefer", "resolution=merge-duplicates,return=representation")
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("is_read" to true, "read_at" to Instant.now().toString()))
+        }
+        ensureSuccess(response.bodyAsText(), response.status.isSuccess())
     }
 
     suspend fun deleteDevice(userId: String, deviceId: String) {

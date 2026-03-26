@@ -31,6 +31,10 @@ class MainViewModel(
         viewModelScope.launch { repository.refresh() }
     }
 
+    fun restoreSession() {
+        viewModelScope.launch { repository.restoreSession() }
+    }
+
     fun saveProfile(firstName: String, lastName: String, phone: String) {
         viewModelScope.launch { repository.saveProfile(firstName, lastName, phone) }
     }
@@ -39,20 +43,25 @@ class MainViewModel(
         viewModelScope.launch { repository.addPaymentMethod(cardBrand, cardNumber, expiryMonth, expiryYear) }
     }
 
-    fun setAutopay(enabled: Boolean, paymentMethodId: String?, amountLimit: Double, billingCycle: String) {
-        viewModelScope.launch { repository.setAutopay(enabled, paymentMethodId, amountLimit, billingCycle) }
+    fun setAutopay(enabled: Boolean, paymentMethodId: String?, amountLimit: Double, billingCycle: String, paymentDay: Int, meterNumber: String?) {
+        viewModelScope.launch { repository.setAutopay(enabled, paymentMethodId, amountLimit, billingCycle, paymentDay, meterNumber) }
     }
 
     fun fundWallet(amount: Double) {
         viewModelScope.launch { repository.fundWallet(amount) }
     }
 
-    fun payUtility(utilityType: UtilityType, amount: Double, paymentMethodId: String?, useWallet: Boolean = true) {
+    fun withdrawWallet(amount: Double) {
+        viewModelScope.launch { repository.withdrawWallet(amount) }
+    }
+
+    fun payUtility(utilityType: UtilityType, amount: Double, meterNumber: String, paymentMethodId: String?, useWallet: Boolean = true) {
         viewModelScope.launch {
             repository.payUtility(
                 PaymentDraft(
                     utilityType = utilityType,
                     amount = amount,
+                    meterNumber = meterNumber,
                     paymentMethodId = paymentMethodId,
                     useWallet = useWallet,
                 )
@@ -78,6 +87,14 @@ class MainViewModel(
 
     fun setAutoLockMinutes(minutes: Int) {
         viewModelScope.launch { repository.setAutoLockMinutes(minutes) }
+    }
+
+    fun markNotificationRead(notificationId: String) {
+        viewModelScope.launch { repository.markNotificationRead(notificationId) }
+    }
+
+    fun setDarkMode(enabled: Boolean) {
+        viewModelScope.launch { repository.setDarkMode(enabled) }
     }
 
     fun consumeMessage() = repository.consumeMessage()

@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.voltflow.data.MockPaymentProcessor
 import com.example.voltflow.data.UserPreferencesStore
@@ -17,13 +19,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import android.os.SystemClock
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
         val repository = VoltflowRepository(applicationContext, MockPaymentProcessor())
+        val splashStart = SystemClock.elapsedRealtime()
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition {
+            val elapsed = SystemClock.elapsedRealtime() - splashStart
+            elapsed < 1_000 || (repository.uiState.value.isLoading && elapsed < 10_000)
+        }
+
+        enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
 
         setContent {
             val context = LocalContext.current
@@ -33,12 +47,19 @@ class MainActivity : ComponentActivity() {
             val mainViewModel: MainViewModel = viewModel(
                 factory = MainViewModel.factory(repository)
             )
+            val uiState by mainViewModel.uiState.collectAsState()
 
-            VoltflowTheme(darkTheme = darkModePref ?: androidx.compose.foundation.isSystemInDarkTheme()) {
+            val profileDarkMode = uiState.dashboard.profile?.darkMode
+            val resolvedDarkMode = profileDarkMode ?: darkModePref ?: androidx.compose.foundation.isSystemInDarkTheme()
+
+            VoltflowTheme(darkTheme = resolvedDarkMode) {
                 VoltflowApp(
                     viewModel = mainViewModel,
-                    darkModeEnabled = darkModePref ?: androidx.compose.foundation.isSystemInDarkTheme(),
-                    onToggleDarkMode = { enabled -> scope.launch { prefs.setDarkMode(enabled) } },
+                    darkModeEnabled = resolvedDarkMode,
+                    onToggleDarkMode = { enabled ->
+                        scope.launch { prefs.setDarkMode(enabled) }
+                        mainViewModel.setDarkMode(enabled)
+                    },
                 )
             }
         }

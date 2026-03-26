@@ -33,6 +33,8 @@ data class UserProfile(
     @SerialName("email") val email: String = "",
     @SerialName("phone") val phone: String? = null,
     @SerialName("location") val location: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("dark_mode") val darkMode: Boolean = false,
     @SerialName("account_status") val accountStatus: String = "Pending",
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
@@ -76,6 +78,7 @@ data class AutopaySettings(
     @SerialName("amount_limit") val amountLimit: Double = 0.0,
     @SerialName("billing_cycle") val billingCycle: String = "monthly",
     @SerialName("payment_day") val paymentDay: Int = 15,
+    @SerialName("meter_number") val meterNumber: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
 )
 
@@ -116,6 +119,52 @@ data class TransactionRecord(
     @SerialName("client_reference") val clientReference: String,
     @SerialName("metadata") val metadata: Map<String, String> = emptyMap(),
     @SerialName("occurred_at") val occurredAt: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+)
+
+@Serializable
+data class BillingAccount(
+    @SerialName("id") val id: String = UUID.randomUUID().toString(),
+    @SerialName("user_id") val userId: String,
+    @SerialName("provider_name") val providerName: String,
+    @SerialName("account_masked") val accountMasked: String,
+    @SerialName("meter_number") val meterNumber: String,
+    @SerialName("utility_type") val utilityType: String = "electricity",
+    @SerialName("is_default") val isDefault: Boolean = false,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null,
+)
+
+@Serializable
+data class Bill(
+    @SerialName("id") val id: String = UUID.randomUUID().toString(),
+    @SerialName("user_id") val userId: String,
+    @SerialName("billing_account_id") val billingAccountId: String? = null,
+    @SerialName("amount_due") val amountDue: Double,
+    @SerialName("due_date") val dueDate: String,
+    @SerialName("status") val status: String = "open",
+    @SerialName("created_at") val createdAt: String? = null,
+)
+
+@Serializable
+data class WalletTransaction(
+    @SerialName("id") val id: String = UUID.randomUUID().toString(),
+    @SerialName("user_id") val userId: String,
+    @SerialName("kind") val kind: String,
+    @SerialName("amount") val amount: Double,
+    @SerialName("method_label") val methodLabel: String,
+    @SerialName("occurred_at") val occurredAt: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+)
+
+@Serializable
+data class UsageMetricPeriod(
+    @SerialName("id") val id: String = UUID.randomUUID().toString(),
+    @SerialName("user_id") val userId: String,
+    @SerialName("period_start") val periodStart: String,
+    @SerialName("period_end") val periodEnd: String,
+    @SerialName("kwh_used") val kwhUsed: Double,
+    @SerialName("amount_spent") val amountSpent: Double,
     @SerialName("created_at") val createdAt: String? = null,
 )
 
@@ -226,11 +275,28 @@ data class DashboardState(
     val paymentMethods: List<PaymentMethod> = emptyList(),
     val transactions: List<TransactionRecord> = emptyList(),
     val recentTransactions: List<TransactionRecord> = emptyList(),
+    val billingAccounts: List<BillingAccount> = emptyList(),
+    val bills: List<Bill> = emptyList(),
+    val walletTransactions: List<WalletTransaction> = emptyList(),
+    val usagePeriods: List<UsageMetricPeriod> = emptyList(),
     val notifications: List<AppNotification> = emptyList(),
     val autopay: AutopaySettings? = null,
     val securitySettings: SecuritySettings? = null,
     val devices: List<ConnectedDevice> = emptyList(),
     val currentDeviceId: String? = null,
+    val homeStatus: ScreenStatus = ScreenStatus(),
+    val payStatus: ScreenStatus = ScreenStatus(),
+    val historyStatus: ScreenStatus = ScreenStatus(),
+    val walletStatus: ScreenStatus = ScreenStatus(),
+    val autopayStatus: ScreenStatus = ScreenStatus(),
+    val analyticsStatus: ScreenStatus = ScreenStatus(),
+    val notificationsStatus: ScreenStatus = ScreenStatus(),
+)
+
+data class ScreenStatus(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val isEmpty: Boolean = false,
 )
 
 data class AuthFormState(
@@ -250,6 +316,7 @@ data class UiState(
     val restoredRoute: String? = null,
     val activeError: String? = null,
     val transientMessage: String? = null,
+    val isOffline: Boolean = false,
 )
 
 data class PaymentResult(
