@@ -153,9 +153,22 @@ create table if not exists security_settings (
     user_id uuid primary key,
     biometric_enabled boolean not null default false,
     mfa_enabled boolean not null default false,
-    pin_enabled boolean not null default false,
-    auto_lock_minutes int not null default 1,
+    lock_scope text not null default 'transactions_only' check (lock_scope in ('transactions_only','transactions_and_app')),
+    pin_hash text,
+    pin_failed_attempts int not null default 0,
+    pin_locked_until timestamptz,
     updated_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists pin_reset_tokens (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null,
+    token_hash text not null,
+    resend_count int not null default 0,
+    expires_at timestamptz not null,
+    consumed_at timestamptz,
+    invalidated_at timestamptz,
+    created_at timestamptz not null default timezone('utc', now())
 );
 
 create table if not exists connected_devices (
@@ -167,6 +180,7 @@ create table if not exists connected_devices (
     last_active timestamptz not null default timezone('utc', now()),
     location text,
     session_token text not null,
+    push_token text,
     unique (user_id, device_id)
 );
 
@@ -198,6 +212,7 @@ create index if not exists idx_billing_accounts_user_default on billing_accounts
 create index if not exists idx_bills_user_created_at on bills (user_id, created_at desc);
 create index if not exists idx_wallet_transactions_user_created_at on wallet_transactions (user_id, created_at desc);
 create index if not exists idx_usage_metrics_user_period on usage_metrics (user_id, period_start desc);
+create index if not exists idx_pin_reset_tokens_user_created_at on pin_reset_tokens (user_id, created_at desc);
 
 alter table profiles enable row level security;
 alter table wallets enable row level security;
@@ -212,6 +227,7 @@ alter table wallet_transactions enable row level security;
 alter table usage_metrics enable row level security;
 alter table autopay_settings enable row level security;
 alter table security_settings enable row level security;
+alter table pin_reset_tokens enable row level security;
 alter table connected_devices enable row level security;
 alter table analytics_events enable row level security;
 alter table email_outbox enable row level security;
@@ -281,6 +297,9 @@ create policy "security owner" on security_settings for all
     using (auth.uid() = user_id)
     with check (auth.uid() = user_id);
 
+drop policy if exists "pin reset owner" on pin_reset_tokens;
+revoke all on table pin_reset_tokens from anon, authenticated;
+
 drop policy if exists "devices owner" on connected_devices;
 create policy "devices owner" on connected_devices for all
     using (auth.uid() = user_id)
@@ -304,6 +323,7 @@ alter table transactions add column if not exists occurred_at timestamptz not nu
 alter table notifications add column if not exists read_at timestamptz;
 alter table notifications add column if not exists action_url text;
 alter table notifications add column if not exists metadata jsonb not null default '{}'::jsonb;
+alter table connected_devices add column if not exists push_token text;
 alter table autopay_settings add column if not exists billing_day int;
 alter table autopay_settings add column if not exists payment_day int;
 alter table autopay_settings add column if not exists meter_number text;
@@ -318,6 +338,24 @@ alter table profiles add column if not exists avatar_url text default '';
 alter table profiles add column if not exists dark_mode boolean not null default false;
 alter table security_settings add column if not exists biometric_enabled boolean not null default false;
 alter table security_settings add column if not exists mfa_enabled boolean not null default false;
-alter table security_settings add column if not exists pin_enabled boolean not null default false;
-alter table security_settings add column if not exists auto_lock_minutes int not null default 1;
+alter table security_settings add column if not exists pin_hash text;
+alter table security_settings add column if not exists pin_failed_attempts int not null default 0;
+alter table security_settings add column if not exists pin_locked_until timestamptz;
+alter table security_settings add column if not exists lock_scope text not null default 'transactions_only';
 alter table transactions add column if not exists meter_number text;
+do $$
+begin
+    if not exists (
+        select 1 from pg_constraint
+        where conname = 'security_settings_lock_scope_check'
+    ) then
+        alter table security_settings
+            add constraint security_settings_lock_scope_check
+            check (lock_scope in ('transactions_only','transactions_and_app'));
+    end if;
+end $$;
+alter table security_settings drop column if exists pin_enabled;
+alter table security_settings drop column if exists pin_only_mode;
+alter table security_settings drop column if exists auto_lock_minutes;
+alter table pin_reset_tokens drop column if exists max_resends;
+alter table pin_reset_tokens drop column if exists cooldown_until;

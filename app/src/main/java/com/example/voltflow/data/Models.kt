@@ -77,7 +77,7 @@ data class AutopaySettings(
     @SerialName("payment_method_id") val paymentMethodId: String? = null,
     @SerialName("amount_limit") val amountLimit: Double = 0.0,
     @SerialName("billing_cycle") val billingCycle: String = "monthly",
-    @SerialName("payment_day") val paymentDay: Int = 15,
+    @SerialName("payment_day") val paymentDay: Int? = null,
     @SerialName("meter_number") val meterNumber: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
 )
@@ -86,10 +86,28 @@ data class AutopaySettings(
 data class SecuritySettings(
     @SerialName("user_id") val userId: String,
     @SerialName("biometric_enabled") val biometricEnabled: Boolean = false,
+    @SerialName("lock_scope") val lockScope: String = LockScope.TRANSACTIONS_ONLY.value,
     @SerialName("mfa_enabled") val mfaEnabled: Boolean = false,
-    @SerialName("pin_enabled") val pinEnabled: Boolean = false,
-    @SerialName("auto_lock_minutes") val autoLockMinutes: Int = 1,
+    @SerialName("pin_hash") val pinHash: String? = null,
+    @SerialName("pin_failed_attempts") val pinFailedAttempts: Int = 0,
+    @SerialName("pin_locked_until") val pinLockedUntil: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
+)
+
+enum class LockScope(val value: String) {
+    TRANSACTIONS_ONLY("transactions_only"),
+    TRANSACTIONS_AND_APP("transactions_and_app");
+
+    companion object {
+        fun fromRaw(raw: String?): LockScope = entries.firstOrNull { it.value == raw } ?: TRANSACTIONS_ONLY
+    }
+}
+
+data class PinResetRequestResult(
+    val cooldownSeconds: Int = 59,
+    val resendCount: Int = 0,
+    val maxResends: Int = 4,
+    val expiresAt: String? = null,
 )
 
 @Serializable
@@ -194,6 +212,7 @@ data class ConnectedDevice(
     @SerialName("last_active") val lastActive: String,
     @SerialName("location") val location: String? = null,
     @SerialName("session_token") val sessionToken: String,
+    @SerialName("push_token") val pushToken: String? = null,
 )
 
 @Serializable
@@ -318,6 +337,13 @@ data class UiState(
     val transientMessage: String? = null,
     val isOffline: Boolean = false,
 )
+
+sealed class PinVerificationResult {
+    data object Success : PinVerificationResult()
+    data class Failed(val attemptsRemaining: Int) : PinVerificationResult()
+    data class Locked(val unlockAtIso: String, val remainingMillis: Long) : PinVerificationResult()
+    data class Error(val message: String) : PinVerificationResult()
+}
 
 data class PaymentResult(
     val transaction: TransactionRecord,

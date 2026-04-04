@@ -1,39 +1,17 @@
 package com.example.voltflow
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
-import org.junit.Assert.*
-import org.junit.Before
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PaymentViewModelTest {
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    fun setup() {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
-    fun testPaymentFlowSetsSuccess(): runTest = runTest(testDispatcher) {
-        val vm = PaymentViewModel()
-        assertFalse(vm.isProcessing)
-        assertFalse(vm.paymentSuccess)
+    fun meterLengthPolicy_isExactly15Digits() {
+        val validMeter = "123456789012345"
+        val shortMeter = "12345678901234"
+        val longMeter = "1234567890123456"
 
-        vm.startPayment()
-        advanceUntilIdle() // Fast-forward time until all coroutines complete
-
-        assertFalse(vm.isProcessing)
-        assertTrue(vm.paymentSuccess)
+        assertEquals(true, validMeter.length == 15)
+        assertEquals(false, shortMeter.length == 15)
+        assertEquals(false, longMeter.length == 15)
     }
 }

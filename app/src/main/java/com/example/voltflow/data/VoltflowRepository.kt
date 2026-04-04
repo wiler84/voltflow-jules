@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mindrot.jbcrypt.BCrypt
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -29,12 +31,15 @@ class VoltflowRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val service = SupabaseService(context)
+    private val preferences = UserPreferencesStore(context)
     private val database = VoltflowDatabase.create(context)
     private val dao = database.dao()
     private val networkMonitor = NetworkMonitor(context)
     private val repositoryScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private var realtimeService: SupabaseRealtimeService? = null
     private var realtimeStreams: RealtimeStreams? = null
+    @Volatile
+    private var lastKnownPushToken: String? = null
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -48,6 +53,9 @@ class VoltflowRepository(
         repositoryScope.launch {
             restoreSession()
             startSyncLoop()
+        }
+        repositoryScope.launch {
+            lastKnownPushToken = preferences.getPushToken()
         }
         repositoryScope.launch {
             networkMonitor.isOnline.collect { online ->
@@ -91,7 +99,7 @@ class VoltflowRepository(
                 ensureBootstrapRecords(session)
                 startRealtimeSubscriptions(session)
                 syncAllData(session.userId)
-                service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId))
+                service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken))
                 trackEvent(session.userId, "sign_in")
             }.onFailure { publishError(it) }
         }
@@ -110,7 +118,7 @@ class VoltflowRepository(
                 
                 ensureBootstrapRecords(session)
                 startRealtimeSubscriptions(session)
-                service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId))
+                service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken))
                 syncAllData(session.userId)
                 service.addNotification(
                     AppNotification(
@@ -387,12 +395,159 @@ class VoltflowRepository(
         updateSecuritySettings("mfa_toggled") { it.copy(mfaEnabled = enabled) }
     }
 
-    suspend fun setPinEnabled(enabled: Boolean) {
-        updateSecuritySettings("pin_toggled") { it.copy(pinEnabled = enabled) }
+    suspend fun setLockScope(scope: LockScope) {
+        updateSecuritySettings("lock_scope_updated") { it.copy(lockScope = scope.value) }
     }
 
-    suspend fun setAutoLockMinutes(minutes: Int) {
-        updateSecuritySettings("auto_lock_updated") { it.copy(autoLockMinutes = minutes) }
+    suspend fun setPin(pin: String) {
+        val validationError = validateNewPin(pin)
+        if (validationError != null) {
+            publishError(IllegalArgumentException(validationError))
+            return
+        }
+        updateSecuritySettings("pin_set") {
+            it.copy(
+                pinHash = BCrypt.hashpw(pin, BCrypt.gensalt(12)),
+                pinFailedAttempts = 0,
+                pinLockedUntil = null,
+            )
+        }
+    }
+
+    suspend fun saveSecuritySetup(pin: String, enableBiometric: Boolean, scope: LockScope): Boolean {
+        val validationError = validateNewPin(pin)
+        if (validationError != null) {
+            publishError(IllegalArgumentException(validationError))
+            return false
+        }
+
+        return withContext(ioDispatcher) {
+            runCatching {
+                val session = service.requireValidSession()
+                val current = uiState.value.dashboard.securitySettings ?: SecuritySettings(userId = session.userId)
+                val updated = current.copy(
+                    biometricEnabled = enableBiometric,
+                    lockScope = scope.value,
+                    pinHash = BCrypt.hashpw(pin, BCrypt.gensalt(12)),
+                    pinFailedAttempts = 0,
+                    pinLockedUntil = null,
+                    updatedAt = Instant.now().toString(),
+                )
+                service.upsertSecuritySettings(updated)
+                _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
+                service.addNotification(
+                    AppNotification(
+                        userId = session.userId,
+                        title = "Security settings updated",
+                        body = "Your account security preferences were updated.",
+                        type = "security",
+                    )
+                )
+                trackEvent(session.userId, "security_setup_saved")
+                syncAllData(session.userId)
+                true
+            }.getOrElse { error ->
+                publishError(error)
+                false
+            }
+        }
+    }
+
+    suspend fun requestPinResetToken(): PinResetRequestResult =
+        withContext(ioDispatcher) {
+            runCatching { service.requestPinResetToken() }
+                .getOrElse { error ->
+                    publishError(error)
+                    PinResetRequestResult()
+                }
+        }
+
+    suspend fun verifyPinResetToken(token: String): Boolean =
+        withContext(ioDispatcher) {
+            runCatching { service.verifyPinResetToken(token.trim()) }
+                .getOrElse { error ->
+                    publishError(error)
+                    false
+                }
+        }
+
+    suspend fun completePinReset(token: String, newPin: String): Boolean {
+        val validationError = validateNewPin(newPin)
+        if (validationError != null) {
+            publishError(IllegalArgumentException(validationError))
+            return false
+        }
+        return withContext(ioDispatcher) {
+            runCatching {
+                service.completePinReset(token.trim(), newPin)
+                val session = service.requireValidSession()
+                val refreshedSettings = service.fetchSecuritySettings(session.userId)
+                _uiState.update {
+                    it.copy(
+                        dashboard = it.dashboard.copy(securitySettings = refreshedSettings ?: it.dashboard.securitySettings),
+                        transientMessage = "PIN reset successfully"
+                    )
+                }
+                true
+            }.getOrElse { error ->
+                publishError(error)
+                false
+            }
+        }
+    }
+
+    suspend fun verifyPin(pin: String): PinVerificationResult {
+        return withContext(ioDispatcher) {
+            runCatching {
+                val session = service.requireValidSession()
+                val settings = uiState.value.dashboard.securitySettings ?: service.fetchSecuritySettings(session.userId)
+                if (settings == null || settings.pinHash.isNullOrBlank()) {
+                    return@runCatching PinVerificationResult.Error("PIN is not configured")
+                }
+
+                val now = Instant.now()
+                val lockedUntil = settings.pinLockedUntil?.let { runCatching { Instant.parse(it) }.getOrNull() }
+                if (lockedUntil != null && now.isBefore(lockedUntil)) {
+                    val remaining = Duration.between(now, lockedUntil).toMillis().coerceAtLeast(0L)
+                    return@runCatching PinVerificationResult.Locked(lockedUntil.toString(), remaining)
+                }
+
+                val verified = BCrypt.checkpw(pin, settings.pinHash)
+                if (verified) {
+                    val updated = settings.copy(
+                        pinFailedAttempts = 0,
+                        pinLockedUntil = null,
+                        updatedAt = now.toString()
+                    )
+                    service.upsertSecuritySettings(updated)
+                    _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
+                    PinVerificationResult.Success
+                } else {
+                    val failedAttempts = (settings.pinFailedAttempts + 1).coerceAtMost(5)
+                    if (failedAttempts >= 5) {
+                        val lockUntil = now.plusSeconds(5 * 60L)
+                        val updated = settings.copy(
+                            pinFailedAttempts = failedAttempts,
+                            pinLockedUntil = lockUntil.toString(),
+                            updatedAt = now.toString()
+                        )
+                        service.upsertSecuritySettings(updated)
+                        _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
+                        PinVerificationResult.Locked(lockUntil.toString(), 5 * 60_000L)
+                    } else {
+                        val updated = settings.copy(
+                            pinFailedAttempts = failedAttempts,
+                            updatedAt = now.toString()
+                        )
+                        service.upsertSecuritySettings(updated)
+                        _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
+                        PinVerificationResult.Failed((5 - failedAttempts).coerceAtLeast(0))
+                    }
+                }
+            }.getOrElse { error ->
+                PinVerificationResult.Error(error.message ?: "PIN verification failed")
+            }
+        }
     }
 
     suspend fun fundWallet(amount: Double) {
@@ -631,6 +786,24 @@ class VoltflowRepository(
         }
     }
 
+    suspend fun updatePushToken(token: String) {
+        if (token.isBlank()) return
+        lastKnownPushToken = token
+        preferences.setPushToken(token)
+        val session = service.currentSession() ?: return
+        runCatching {
+            service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, token))
+        }.onFailure { Log.w("VoltflowRepository", "Failed to sync push token", it) }
+    }
+
+    suspend fun syncCurrentDeviceLocation() {
+        val session = service.currentSession() ?: return
+        runCatching {
+            service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken))
+            syncAllData(session.userId)
+        }.onFailure { Log.w("VoltflowRepository", "Failed to sync device location", it) }
+    }
+
     private suspend fun ensureBootstrapRecords(
         session: SessionSnapshot,
         firstName: String = session.email.substringBefore('@').replaceFirstChar { it.uppercase() },
@@ -703,27 +876,26 @@ class VoltflowRepository(
             return
         }
         val session = service.requireValidSession()
-        // Error 3 hardening: Each service call is now internally runCatching or fetchListSafe.
-        // We'll wrap upsertDevice just in case.
-        runCatching { service.upsertDevice(service.buildCurrentDevice(session.accessToken, userId)) }
-
-        val profile = service.fetchProfile(userId)
-        val wallet = service.fetchWallet(userId)
-        val usage = service.fetchUsage(userId)
-        val autopay = service.fetchAutopay(userId)
-        val securitySettings = service.fetchSecuritySettings(userId)
-        val paymentMethods = service.fetchPaymentMethods(userId)
-        val transactions = service.fetchTransactions(userId)
-        val recentTransactions = service.fetchTransactions(userId, limit = 5)
-        val notifications = service.fetchNotifications(userId)
-        val devices = service.fetchDevices(userId)
-        val billingAccounts = service.fetchBillingAccounts(userId)
-        val bills = service.fetchBills(userId)
-        val walletTransactions = service.fetchWalletTransactions(userId)
-        val usagePeriods = service.fetchUsageMetrics(userId)
-
-        cacheSnapshot(userId, profile, wallet, transactions, bills, notifications)
-
+        
+        // Tier 1 (Critical): Load immediately for first paint
+        // Run these in parallel for speed
+        val profileDeferred = repositoryScope.async { service.fetchProfile(userId) }
+        val walletDeferred = repositoryScope.async { service.fetchWallet(userId) }
+        val billingAccountsDeferred = repositoryScope.async { service.fetchBillingAccounts(userId) }
+        val billsDeferred = repositoryScope.async { service.fetchBills(userId) }
+        val recentTransactionsDeferred = repositoryScope.async { service.fetchTransactions(userId, limit = 5) }
+        val notificationsDeferred = repositoryScope.async { service.fetchNotifications(userId) }
+        
+        // Await critical data
+        val profile = profileDeferred.await()
+        val wallet = walletDeferred.await()
+        val billingAccounts = billingAccountsDeferred.await()
+        val bills = billsDeferred.await()
+        val recentTransactions = recentTransactionsDeferred.await()
+        val notifications = notificationsDeferred.await()
+        
+        // Update UI with critical data (shows dashboard immediately)
+        cacheSnapshot(userId, profile, wallet, recentTransactions, bills, notifications)
         _uiState.update {
             it.copy(
                 isLoading = false,
@@ -732,22 +904,55 @@ class VoltflowRepository(
                     greeting = greetingForCurrentTime(profile?.firstName),
                     profile = profile,
                     wallet = wallet,
-                    usage = usage,
-                    paymentMethods = paymentMethods,
-                    transactions = transactions,
-                    recentTransactions = recentTransactions,
                     billingAccounts = billingAccounts,
                     bills = bills,
-                    walletTransactions = walletTransactions,
-                    usagePeriods = usagePeriods,
+                    recentTransactions = recentTransactions,
                     notifications = notifications,
-                    autopay = autopay,
-                    securitySettings = securitySettings,
-                    devices = devices,
+                    // Tier 2 data left from previous state until available
+                    usage = it.dashboard.usage,
+                    paymentMethods = it.dashboard.paymentMethods,
+                    transactions = it.dashboard.transactions,
+                    autopay = it.dashboard.autopay,
+                    securitySettings = it.dashboard.securitySettings,
+                    devices = it.dashboard.devices,
                     currentDeviceId = service.currentDeviceId(),
+                    walletTransactions = it.dashboard.walletTransactions,
+                    usagePeriods = it.dashboard.usagePeriods,
                 ),
             )
         }
+        
+        // Tier 2 (Secondary): Load in background after first paint
+        // These are less critical for immediate UX
+        repositoryScope.launch {
+            val usage = service.fetchUsage(userId)
+            val autopay = service.fetchAutopay(userId)
+            val securitySettings = service.fetchSecuritySettings(userId)
+            val paymentMethods = service.fetchPaymentMethods(userId)
+            val transactions = service.fetchTransactions(userId)
+            val devices = service.fetchDevices(userId)
+            val walletTransactions = service.fetchWalletTransactions(userId)
+            val usagePeriods = service.fetchUsageMetrics(userId)
+            
+            // Update UI with secondary data
+            _uiState.update { currentState ->
+                currentState.copy(
+                    dashboard = currentState.dashboard.copy(
+                        usage = usage,
+                        paymentMethods = paymentMethods,
+                        transactions = transactions,
+                        autopay = autopay,
+                        securitySettings = securitySettings,
+                        devices = devices,
+                        walletTransactions = walletTransactions,
+                        usagePeriods = usagePeriods,
+                    ),
+                )
+            }
+        }
+        
+        // Device upsert in background
+        runCatching { service.upsertDevice(service.buildCurrentDevice(session.accessToken, userId, lastKnownPushToken)) }
     }
 
     private suspend fun cacheSnapshot(
@@ -883,6 +1088,7 @@ class VoltflowRepository(
             val current = uiState.value.dashboard.securitySettings ?: SecuritySettings(userId = session.userId)
             val updated = update(current).copy(updatedAt = Instant.now().toString())
             service.upsertSecuritySettings(updated)
+            _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
             service.addNotification(
                 AppNotification(
                     userId = session.userId,
@@ -919,10 +1125,19 @@ class VoltflowRepository(
     }
 
     private suspend fun startSyncLoop() {
+        var lastRealtimeSyncTime = 0L
+        val minimumRealtimeSyncInterval = 60_000 // 60 seconds
         while (true) {
-            delay(12_000)
+            delay(60_000) // Primary polling interval: 60 seconds (reduced from 12s)
             val session = service.currentSession() ?: continue
-            runCatching { syncAllData(session.userId) }
+            if (!_uiState.value.isOffline) {
+                // Skip full sync if realtime is healthy and recent
+                val now = System.currentTimeMillis()
+                if (now - lastRealtimeSyncTime > minimumRealtimeSyncInterval) {
+                    runCatching { syncAllData(session.userId) }
+                    lastRealtimeSyncTime = now
+                }
+            }
         }
     }
 
@@ -943,6 +1158,14 @@ class VoltflowRepository(
                 metadata = metadata,
             )
         )
+    }
+
+    private fun validateNewPin(pin: String): String? {
+        if (pin.length != 6 || pin.any { !it.isDigit() }) {
+            return "PIN must be exactly 6 digits"
+        }
+        val weakPins = setOf("000000", "111111", "123456", "654321", "121212", "112233")
+        return if (pin in weakPins) "Choose a stronger PIN" else null
     }
 }
 

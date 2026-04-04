@@ -3,7 +3,10 @@ package com.example.voltflow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.voltflow.data.LockScope
 import com.example.voltflow.data.PaymentDraft
+import com.example.voltflow.data.PinVerificationResult
+import com.example.voltflow.data.PinResetRequestResult
 import com.example.voltflow.data.UiState
 import com.example.voltflow.data.UtilityType
 import com.example.voltflow.data.VoltflowRepository
@@ -81,16 +84,35 @@ class MainViewModel(
         viewModelScope.launch { repository.setMfaEnabled(enabled) }
     }
 
-    fun setPinEnabled(enabled: Boolean) {
-        viewModelScope.launch { repository.setPinEnabled(enabled) }
+    fun setLockScope(scope: LockScope) {
+        viewModelScope.launch { repository.setLockScope(scope) }
     }
 
-    fun setAutoLockMinutes(minutes: Int) {
-        viewModelScope.launch { repository.setAutoLockMinutes(minutes) }
+    suspend fun verifyPin(pin: String): PinVerificationResult = repository.verifyPin(pin)
+
+    fun setPin(pin: String) {
+        viewModelScope.launch { repository.setPin(pin) }
     }
+
+    suspend fun saveSecuritySetup(pin: String, enableBiometric: Boolean, scope: LockScope): Boolean =
+        repository.saveSecuritySetup(pin, enableBiometric, scope)
+
+    suspend fun requestPinResetToken(): PinResetRequestResult = repository.requestPinResetToken()
+
+    suspend fun verifyPinResetToken(token: String): Boolean = repository.verifyPinResetToken(token)
+
+    suspend fun completePinReset(token: String, newPin: String): Boolean = repository.completePinReset(token, newPin)
 
     fun markNotificationRead(notificationId: String) {
         viewModelScope.launch { repository.markNotificationRead(notificationId) }
+    }
+
+    fun updatePushToken(token: String) {
+        viewModelScope.launch { repository.updatePushToken(token) }
+    }
+
+    fun syncCurrentDeviceLocation() {
+        viewModelScope.launch { repository.syncCurrentDeviceLocation() }
     }
 
     fun setDarkMode(enabled: Boolean) {

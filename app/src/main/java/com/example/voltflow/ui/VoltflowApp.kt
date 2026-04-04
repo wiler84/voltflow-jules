@@ -1,6 +1,13 @@
 package com.example.voltflow.ui
 
+import android.Manifest
+import android.app.Activity
+import android.app.KeyguardManager
+import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.os.Build
 import android.util.Patterns
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -41,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -66,49 +74,20 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.fragment.app.FragmentActivity
+import com.example.voltflow.notifications.NotificationHelper
+import com.example.voltflow.notifications.VoltflowNotificationCenter
+import com.google.firebase.messaging.FirebaseMessaging
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 import androidx.compose.ui.input.pointer.pointerInput
-
-
-object VoltflowDesign {
-    val BgTop = Color(0xFF0F172A)
-    val BgBottom = Color(0xFF020617)
-    val CardBg = Color(0xFF1E293B).copy(alpha = 0.6f)
-    val CardBgSolid = Color(0xFF1E293B)
-    val IconCircleBg = Color(0xFF334155).copy(alpha = 0.5f)
-    val GrayText = Color(0xFF94A3B8)
-    val BlueAccent = Color(0xFF3B82F6)
-    val DestructiveRed = Color(0xFFEF4444)
-    val DestructiveBg = Color(0x1AEF4444)
-    val HeaderCircle = Color(0xFF1E293B)
-    val BottomNavBg = Color(0xFF1E293B).copy(alpha = 0.7f)
-    val WarningAmber = Color(0xFFF59E0B)
-    val InputBg = Color(0xFF0F172A).copy(alpha = 0.5f)
-    val ModalBg = Color(0xFF0F172A)
-    val DividerColor = Color(0x1FFFFFFF)
-
-    val PrimaryGradient = Brush.horizontalGradient(listOf(Color(0xFF3B82F6), Color(0xFF2563EB)))
-    val LogoGradient = Brush.verticalGradient(listOf(Color(0xFF60A5FA), Color(0xFF3B82F6)))
-    
-    val SoraFont = FontFamily(
-        Font(R.font.sora_wght, weight = FontWeight.Normal),
-        Font(R.font.sora_wght, weight = FontWeight.SemiBold),
-        Font(R.font.sora_wght, weight = FontWeight.Bold),
-        Font(R.font.sora_wght, weight = FontWeight.Black)
-    )
-    
-    val ManropeFont = FontFamily(
-        Font(R.font.manrope_wght, weight = FontWeight.Normal),
-        Font(R.font.manrope_wght, weight = FontWeight.Medium),
-        Font(R.font.manrope_wght, weight = FontWeight.SemiBold),
-        Font(R.font.manrope_wght, weight = FontWeight.Bold)
-    )
-
-    val AppFont = SoraFont
-    val BodyFont = ManropeFont
-}
+import kotlin.coroutines.resume
 
 object VoltflowAppUtils {
     fun shortId(value: String?): String {
@@ -127,30 +106,92 @@ fun VoltflowApp(
     val navigator = rememberAppNavigator(if (state.isAuthenticated) Screen.Home else Screen.Auth)
     val haptics = LocalHapticFeedback.current
     val context = LocalContext.current
+    val view = LocalView.current
     val navStateStore = remember { NavStateStore(context) }
-    val prefs = remember { UserPreferencesStore(context) }
+    val notificationHelper = remember(context) { NotificationHelper(context) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val hazeState = rememberHazeState()
     val userId = state.dashboard.profile?.userId
     val lifecycleOwner = LocalLifecycleOwner.current
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { }
+    var pendingDeviceCredentialCallback by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
+    val deviceCredentialLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        pendingDeviceCredentialCallback?.invoke(result.resultCode == Activity.RESULT_OK)
+        pendingDeviceCredentialCallback = null
+    }
     var hasPin by remember { mutableStateOf(false) }
-    var lastInteraction by remember { mutableStateOf(System.currentTimeMillis()) }
-    var showLock by remember { mutableStateOf(false) }
+    var showPinFallback by remember { mutableStateOf(false) }
+    var appLocked by remember { mutableStateOf(false) }
     var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var lockMessage by remember { mutableStateOf("Unlock Voltflow") }
     var showReloadDialog by remember { mutableStateOf(false) }
+    var authUntilEpochMillis by remember { mutableStateOf(0L) }
+    var pinAttemptsRemaining by remember { mutableStateOf(5) }
+    var pinLockRemainingMillis by remember { mutableStateOf(0L) }
+    var lockInlineError by remember { mutableStateOf<String?>(null) }
+    var showSecuritySetup by remember { mutableStateOf(false) }
+    var hasAppliedInitialAppLock by remember(userId) { mutableStateOf(false) }
+    val lockScope = LockScope.fromRaw(state.dashboard.securitySettings?.lockScope)
+    val appLockEnabled = lockScope == LockScope.TRANSACTIONS_AND_APP
     val biometricManager = remember { BiometricManager.from(context) }
     val biometricAvailable = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
     val biometricEnabled = state.dashboard.securitySettings?.biometricEnabled == true
+    val keyguardManager = remember(context) { ContextCompat.getSystemService(context, KeyguardManager::class.java) }
+    val launchDeviceCredentialPrompt: suspend (String, String) -> Boolean = { title, description ->
+        suspendCancellableCoroutine { continuation ->
+            val credentialIntent = keyguardManager?.createConfirmDeviceCredentialIntent(title, description)
+            if (credentialIntent == null) {
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
 
-    val requireUnlock: (String, () -> Unit) -> Unit = { message, action ->
-        val lockConfigured = biometricEnabled || hasPin
-        if (!lockConfigured) {
+            pendingDeviceCredentialCallback = { success ->
+                if (continuation.isActive) {
+                    continuation.resume(success)
+                }
+            }
+
+            deviceCredentialLauncher.launch(credentialIntent)
+
+            continuation.invokeOnCancellation {
+                pendingDeviceCredentialCallback = null
+            }
+        }
+    }
+    val requireTransactionAuth: (String, () -> Unit) -> Unit = { actionLabel, action ->
+        val transactionAuthConfigured = (biometricEnabled && biometricAvailable) || hasPin
+        if (!transactionAuthConfigured || System.currentTimeMillis() < authUntilEpochMillis) {
             action()
         } else {
-            lockMessage = message
+            val activity = context as? FragmentActivity
             pendingAction = action
-            showLock = true
+            if (biometricEnabled && biometricAvailable && activity != null) {
+                scope.launch {
+                    val biometricSuccess = authenticateWithTransactionBiometric(
+                        activity = activity,
+                        title = actionLabel,
+                        subtitle = "Use biometrics to continue",
+                    )
+                    if (biometricSuccess) {
+                        pendingAction = null
+                        authUntilEpochMillis = System.currentTimeMillis() + 5 * 60_000L
+                        action()
+                    } else if (hasPin) {
+                        showPinFallback = true
+                    } else {
+                        pendingAction = null
+                    }
+                }
+            } else if (hasPin) {
+                showPinFallback = true
+            } else {
+                pendingAction = null
+                action()
+            }
         }
     }
 
@@ -172,23 +213,94 @@ fun VoltflowApp(
     LaunchedEffect(state.activeError) {
         state.activeError?.let { snackbarHostState.showSnackbar(it); viewModel.consumeError() }
     }
+    LaunchedEffect(Unit) {
+        notificationHelper.ensureChannels()
+    }
+    LaunchedEffect(Unit) {
+        VoltflowNotificationCenter.events.collect { event ->
+            snackbarHostState.showSnackbar(event.title.ifBlank { event.body })
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+    LaunchedEffect(state.dashboard.notifications) {
+        val latestUnread = state.dashboard.notifications
+            .filter { !it.isRead }
+            .maxByOrNull { it.createdAt ?: "" }
+        latestUnread?.let { notification ->
+            notificationHelper.dispatch(
+                title = notification.title,
+                body = notification.body,
+                type = notification.type,
+            )
+        }
+    }
+    LaunchedEffect(state.isAuthenticated) {
+        if (state.isAuthenticated) {
+            runCatching { FirebaseMessaging.getInstance().token }
+                .getOrNull()
+                ?.addOnSuccessListener { token ->
+                    if (token.isNotBlank()) {
+                        viewModel.updatePushToken(token)
+                    }
+                }
+        }
+    }
+    LaunchedEffect(appLocked, state.isAuthenticated, appLockEnabled) {
+        if (!state.isAuthenticated || !appLockEnabled || !appLocked) return@LaunchedEffect
+        val activity = context as? FragmentActivity ?: return@LaunchedEffect
+        while (appLocked && state.isAuthenticated && appLockEnabled) {
+            val unlocked = authenticateWithSystemAppUnlock(
+                activity = activity,
+                biometricAvailable = biometricAvailable,
+                launchDeviceCredentialPrompt = launchDeviceCredentialPrompt,
+            )
+            if (unlocked) {
+                appLocked = false
+            } else {
+                kotlinx.coroutines.delay(350)
+            }
+        }
+    }
 
-    BackHandler(enabled = navigator.canPop) {
+    BackHandler(enabled = showSecuritySetup || appLocked) { }
+    BackHandler(enabled = showPinFallback) {
+        showPinFallback = false
+        pendingAction = null
+    }
+    BackHandler(enabled = navigator.canPop && !showSecuritySetup && !showPinFallback && !appLocked) {
         navigator.pop()
         if (!userId.isNullOrBlank()) {
             scope.launch { navStateStore.saveRoute(userId, navigator.currentScreen.route) }
         }
     }
 
-    LaunchedEffect(Unit) {
-        hasPin = prefs.hasPin()
-        prefs.lastInteractionFlow.collect { stored ->
-            stored?.let { lastInteraction = it }
+    LaunchedEffect(state.dashboard.securitySettings?.pinHash, state.isAuthenticated, state.isLoading) {
+        hasPin = !state.dashboard.securitySettings?.pinHash.isNullOrBlank()
+        showSecuritySetup = state.isAuthenticated && !state.isLoading && !hasPin
+    }
+    LaunchedEffect(state.isAuthenticated) {
+        if (!state.isAuthenticated) {
+            showPinFallback = false
+            pendingAction = null
+            authUntilEpochMillis = 0L
+            appLocked = false
+            hasAppliedInitialAppLock = false
         }
     }
 
-    LaunchedEffect(state.dashboard.securitySettings?.pinEnabled) {
-        hasPin = prefs.hasPin()
+    LaunchedEffect(pinLockRemainingMillis) {
+        if (pinLockRemainingMillis > 0L) {
+            while (pinLockRemainingMillis > 0L) {
+                kotlinx.coroutines.delay(1_000L)
+                pinLockRemainingMillis = (pinLockRemainingMillis - 1_000L).coerceAtLeast(0L)
+            }
+        }
     }
 
     LaunchedEffect(state.isLoading) {
@@ -201,19 +313,34 @@ fun VoltflowApp(
             showReloadDialog = false
         }
     }
+    LaunchedEffect(state.isAuthenticated, state.dashboard.securitySettings?.lockScope) {
+        if (!state.isAuthenticated) {
+            hasAppliedInitialAppLock = false
+            appLocked = false
+            return@LaunchedEffect
+        }
 
-    DisposableEffect(lifecycleOwner, state.dashboard.securitySettings, hasPin) {
+        val settings = state.dashboard.securitySettings ?: return@LaunchedEffect
+        if (!hasAppliedInitialAppLock) {
+            hasAppliedInitialAppLock = true
+            appLocked = LockScope.fromRaw(settings.lockScope) == LockScope.TRANSACTIONS_AND_APP
+        } else if (LockScope.fromRaw(settings.lockScope) != LockScope.TRANSACTIONS_AND_APP) {
+            appLocked = false
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, state.dashboard.securitySettings, appLockEnabled) {
         val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE && state.isAuthenticated) {
+                pendingAction = null
+                showPinFallback = false
+                if (appLockEnabled) {
+                    appLocked = true
+                }
+            }
             if (event == Lifecycle.Event.ON_RESUME) {
-                val autoLockMinutes = state.dashboard.securitySettings?.autoLockMinutes ?: 0
-                val lockEnabled = autoLockMinutes > 0 && (state.dashboard.securitySettings?.biometricEnabled == true || hasPin)
-                if (lockEnabled) {
-                    val now = System.currentTimeMillis()
-                    val elapsed = now - lastInteraction
-                    if (elapsed > autoLockMinutes * 60_000L) {
-                        lockMessage = "Unlock Voltflow"
-                        showLock = true
-                    }
+                if (appLockEnabled) {
+                    appLocked = true
                 }
             }
         }
@@ -234,9 +361,10 @@ fun VoltflowApp(
             ) {
                 VoltflowBottomNav(
                     current = navigator.currentScreen,
-                    hasUnread = state.dashboard.notifications.any { !it.isRead }
+                    hasUnread = state.dashboard.notifications.any { !it.isRead },
+                    hazeState = hazeState,
                 ) { screen ->
-                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    performPlatformHaptic(view, android.view.HapticFeedbackConstants.CONTEXT_CLICK)
                     navigator.switchTab(screen)
                     if (!userId.isNullOrBlank()) {
                         scope.launch { navStateStore.saveRoute(userId, screen.route) }
@@ -249,7 +377,7 @@ fun VoltflowApp(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Brush.verticalGradient(listOf(VoltflowDesign.BgTop, VoltflowDesign.BgBottom)))
-                .pointerInput(Unit) { /* interaction tracking removed */ }
+                .hazeSource(state = hazeState)
         ) {
             if (state.isOffline) {
                 OfflineBanner(modifier = Modifier.align(Alignment.TopCenter))
@@ -289,7 +417,7 @@ fun VoltflowApp(
                         state = state,
                         innerPadding = innerPadding,
                         onPay = { utility, amount, meterNumber, method, useWallet, onSuccess ->
-                            requireUnlock("Confirm payment") {
+                            requireTransactionAuth("Confirm payment") {
                                 viewModel.payUtility(utility, amount, meterNumber, method, useWallet)
                                 onSuccess()
                             }
@@ -300,9 +428,13 @@ fun VoltflowApp(
                         state = state,
                         innerPadding = innerPadding,
                         onBack = { navigator.pop() },
-                        onFund = viewModel::fundWallet,
+                        onFund = { amount ->
+                            requireTransactionAuth("Confirm add funds") {
+                                viewModel.fundWallet(amount)
+                            }
+                        },
                         onWithdraw = { amount, onDone ->
-                            requireUnlock("Confirm withdrawal") {
+                            requireTransactionAuth("Confirm withdrawal") {
                                 viewModel.withdrawWallet(amount)
                                 onDone()
                             }
@@ -316,7 +448,16 @@ fun VoltflowApp(
                         onMarkRead = viewModel::markNotificationRead,
                     )
                     Screen.Usage -> UsageScreen(state, innerPadding, onBack = { navigator.pop() })
-                    Screen.AutoPay -> AutoPayScreen(state, innerPadding, viewModel::setAutopay, onBack = { navigator.pop() })
+                    Screen.AutoPay -> AutoPayScreen(
+                        state = state,
+                        innerPadding = innerPadding,
+                        onSetAutopay = { enabled, paymentMethodId, amountLimit, billingCycle, paymentDay, meterNumber ->
+                            requireTransactionAuth("Confirm AutoPay") {
+                                viewModel.setAutopay(enabled, paymentMethodId, amountLimit, billingCycle, paymentDay, meterNumber)
+                            }
+                        },
+                        onBack = { navigator.pop() }
+                    )
                     Screen.PaymentMethods -> PaymentMethodsScreen(
                         state,
                         innerPadding,
@@ -324,7 +465,13 @@ fun VoltflowApp(
                         onEnableMfa = viewModel::setMfaEnabled,
                         onAdd = viewModel::addPaymentMethod,
                     )
-                    Screen.ConnectedDevices -> ConnectedDevicesScreen(state, innerPadding, onBack = { navigator.pop() }, onRevoke = viewModel::revokeDevice)
+                    Screen.ConnectedDevices -> ConnectedDevicesScreen(
+                        state = state,
+                        innerPadding = innerPadding,
+                        onBack = { navigator.pop() },
+                        onRevoke = viewModel::revokeDevice,
+                        onRefreshLocation = viewModel::syncCurrentDeviceLocation,
+                    )
                     Screen.Profile -> ProfileHubScreen(
                         state = state,
                         innerPadding = innerPadding,
@@ -341,7 +488,18 @@ fun VoltflowApp(
                         onSignOut = { viewModel.signOut() },
                     )
                     Screen.ProfileOptions -> ProfileOptionsScreen(state = state, innerPadding = innerPadding, onBack = { navigator.pop() }, onSaveProfile = viewModel::saveProfile)
-                    Screen.SecuritySettings -> SecuritySettingsScreen(state = state, innerPadding = innerPadding, onBack = { navigator.pop() }, onToggleBiometric = viewModel::setBiometricEnabled, onToggleMfa = viewModel::setMfaEnabled, onSetPin = { viewModel.setPinEnabled(true) }, onAutoLockChange = viewModel::setAutoLockMinutes)
+                    Screen.SecuritySettings -> SecuritySettingsScreen(
+                        state = state,
+                        innerPadding = innerPadding,
+                        onBack = { navigator.pop() },
+                        onToggleBiometric = viewModel::setBiometricEnabled,
+                        onToggleMfa = viewModel::setMfaEnabled,
+                        onSetPin = viewModel::setPin,
+                        onSetLockScope = viewModel::setLockScope,
+                        onRequestPinReset = { viewModel.requestPinResetToken() },
+                        onVerifyPinReset = { token -> viewModel.verifyPinResetToken(token) },
+                        onCompletePinReset = { token, pin -> viewModel.completePinReset(token, pin) }
+                    )
                     Screen.HelpCenter -> HelpCenterScreen(innerPadding = innerPadding, onBack = { navigator.pop() })
                     Screen.Terms -> TermsScreen(innerPadding = innerPadding, onBack = { navigator.pop() })
                     Screen.Contact -> ContactScreen(innerPadding = innerPadding, onBack = { navigator.pop() })
@@ -349,7 +507,7 @@ fun VoltflowApp(
             }
 
             if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f)), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = VoltflowDesign.BlueAccent, strokeWidth = 3.dp)
                 }
             }
@@ -369,26 +527,43 @@ fun VoltflowApp(
                 )
             }
 
-            if (showLock) {
-                VoltflowLockOverlay(
-                    message = lockMessage,
-                    biometricEnabled = biometricEnabled,
-                    biometricAvailable = biometricAvailable,
-                    hasPin = hasPin,
-                    onUnlock = {
-                        showLock = false
+            if (showPinFallback) {
+                VoltflowPinFallbackOverlay(
+                    lockoutRemainingMillis = pinLockRemainingMillis,
+                    attemptsRemaining = pinAttemptsRemaining,
+                    inlineError = lockInlineError,
+                    onVerifyPin = { pin -> viewModel.verifyPin(pin) },
+                    onAuthenticated = {
+                        showPinFallback = false
                         val action = pendingAction
                         pendingAction = null
-                        val now = System.currentTimeMillis()
-                        lastInteraction = now
-                        scope.launch { prefs.setLastInteraction(now) }
+                        lockInlineError = null
+                        pinAttemptsRemaining = 5
+                        pinLockRemainingMillis = 0L
+                        authUntilEpochMillis = System.currentTimeMillis() + 5 * 60_000L
                         action?.invoke()
                     },
-                    onCancel = {
-                        showLock = false
+                    onDismiss = {
+                        showPinFallback = false
                         pendingAction = null
+                    },
+                    onAuthState = { attempts, remainingMillis, message ->
+                        pinAttemptsRemaining = attempts
+                        pinLockRemainingMillis = remainingMillis
+                        lockInlineError = message
+                    },
+                )
+            }
+            if (showSecuritySetup) {
+                SecuritySetupOverlay(
+                    biometricAvailable = biometricAvailable,
+                    onComplete = { pin, enableBiometric, scopeChoice ->
+                        viewModel.saveSecuritySetup(pin, enableBiometric, scopeChoice)
                     }
                 )
+            }
+            if (appLocked && state.isAuthenticated && appLockEnabled) {
+                DeviceUnlockBlockingOverlay()
             }
         }
     }
@@ -414,8 +589,252 @@ private fun AuthBloom() {
 
 private fun Screen.isMainTab(): Boolean = this in listOf(Screen.Home, Screen.Pay, Screen.History, Screen.Profile)
 
+private suspend fun authenticateWithCombinedSystemAuth(activity: FragmentActivity): Boolean {
+    return suspendCancellableCoroutine { continuation ->
+        val prompt = BiometricPrompt(
+            activity,
+            ContextCompat.getMainExecutor(activity),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    if (continuation.isActive) continuation.resume(true)
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    if (continuation.isActive) continuation.resume(false)
+                }
+            }
+        )
+        val info = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Unlock Voltflow")
+            .setSubtitle("Use your device security to continue")
+            .setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+            .build()
+        prompt.authenticate(info)
+        continuation.invokeOnCancellation { prompt.cancelAuthentication() }
+    }
+}
+
+private suspend fun authenticateWithBiometricOnly(
+    activity: FragmentActivity,
+    title: String,
+    subtitle: String,
+    negativeButtonText: String,
+): Boolean {
+    return suspendCancellableCoroutine { continuation ->
+        val prompt = BiometricPrompt(
+            activity,
+            ContextCompat.getMainExecutor(activity),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    if (continuation.isActive) continuation.resume(true)
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    if (continuation.isActive) continuation.resume(false)
+                }
+
+                override fun onAuthenticationFailed() {
+                    // Keep prompt open for additional attempts; final outcome is emitted via onAuthenticationError.
+                }
+            }
+        )
+        val info = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(title)
+            .setSubtitle(subtitle)
+            .setNegativeButtonText(negativeButtonText)
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            .build()
+        prompt.authenticate(info)
+        continuation.invokeOnCancellation { prompt.cancelAuthentication() }
+    }
+}
+
+private suspend fun authenticateWithTransactionBiometric(
+    activity: FragmentActivity,
+    title: String,
+    subtitle: String,
+): Boolean = authenticateWithBiometricOnly(
+    activity = activity,
+    title = title,
+    subtitle = subtitle,
+    negativeButtonText = "Use PIN",
+)
+
+private suspend fun authenticateWithSystemAppUnlock(
+    activity: FragmentActivity,
+    biometricAvailable: Boolean,
+    launchDeviceCredentialPrompt: suspend (String, String) -> Boolean,
+): Boolean {
+    val title = "Unlock Voltflow"
+    val description = "Use your device PIN, pattern, password, or biometrics to continue."
+    return when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+            authenticateWithCombinedSystemAuth(activity)
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> {
+            if (biometricAvailable) {
+                authenticateWithBiometricOnly(
+                    activity = activity,
+                    title = title,
+                    subtitle = "Use biometrics to unlock Voltflow",
+                    negativeButtonText = "Use device PIN",
+                ) || launchDeviceCredentialPrompt(title, description)
+            } else {
+                launchDeviceCredentialPrompt(title, description)
+            }
+        }
+        else -> launchDeviceCredentialPrompt(title, description)
+    }
+}
+
 @Composable
-private fun VoltflowBottomNav(current: Screen, hasUnread: Boolean, onNavigate: (Screen) -> Unit) {
+private fun DeviceUnlockBlockingOverlay() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f))
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+            Text("Unlocking Voltflow", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Text(
+                "Use your device security to continue.",
+                color = VoltflowDesign.GrayText,
+                textAlign = TextAlign.Center,
+                fontFamily = VoltflowDesign.ManropeFont
+            )
+            CircularProgressIndicator(color = VoltflowDesign.BlueAccent, strokeWidth = 3.dp)
+        }
+    }
+}
+
+@Composable
+private fun SecuritySetupOverlay(
+    biometricAvailable: Boolean,
+    onComplete: suspend (pin: String, enableBiometric: Boolean, scope: LockScope) -> Boolean
+) {
+    var pin by rememberSaveable { mutableStateOf("") }
+    var confirmPin by rememberSaveable { mutableStateOf("") }
+    var enableBiometric by rememberSaveable { mutableStateOf(false) }
+    var scopeChoice by rememberSaveable { mutableStateOf(LockScope.TRANSACTIONS_ONLY) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var isSaving by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+    ) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(20.dp),
+            shape = RoundedCornerShape(24.dp),
+            color = VoltflowDesign.ModalBg,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.24f))
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Secure your account", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 20.sp, fontFamily = VoltflowDesign.SoraFont)
+                Text("Create a 6-digit PIN for transaction approval.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
+                VoltflowInput(
+                    value = pin,
+                    onValueChange = { pin = it.filter(Char::isDigit).take(6) },
+                    placeholder = "Enter PIN",
+                )
+                VoltflowInput(
+                    value = confirmPin,
+                    onValueChange = { confirmPin = it.filter(Char::isDigit).take(6) },
+                    placeholder = "Re-enter PIN",
+                )
+                if (biometricAvailable) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Use biometrics for faster transaction approval", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface, fontFamily = VoltflowDesign.ManropeFont)
+                        Switch(
+                            checked = enableBiometric,
+                            onCheckedChange = { enableBiometric = it },
+                            colors = SwitchDefaults.colors(checkedTrackColor = VoltflowDesign.BlueAccent),
+                            enabled = !isSaving,
+                        )
+                    }
+                }
+                Text("Lock scope", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = scopeChoice == LockScope.TRANSACTIONS_ONLY,
+                        onClick = { scopeChoice = LockScope.TRANSACTIONS_ONLY },
+                        label = { Text("Transactions only") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = VoltflowDesign.BlueAccent.copy(alpha = 0.18f),
+                            selectedLabelColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        enabled = !isSaving,
+                    )
+                    FilterChip(
+                        selected = scopeChoice == LockScope.TRANSACTIONS_AND_APP,
+                        onClick = { scopeChoice = LockScope.TRANSACTIONS_AND_APP },
+                        label = { Text("Transactions + app lock") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = VoltflowDesign.BlueAccent.copy(alpha = 0.18f),
+                            selectedLabelColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        enabled = !isSaving,
+                    )
+                }
+                error?.let {
+                    Text(it, color = VoltflowDesign.DestructiveRed, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                }
+                Button(
+                    onClick = {
+                        val weakPins = setOf("000000", "111111", "123456", "654321", "121212", "112233")
+                        when {
+                            pin.length != 6 || confirmPin.length != 6 -> error = "PIN must be exactly 6 digits."
+                            pin != confirmPin -> error = "PINs don't match. Try again."
+                            pin in weakPins -> error = "Choose a stronger PIN."
+                            else -> {
+                                error = null
+                                scope.launch {
+                                    isSaving = true
+                                    val saved = onComplete(pin, enableBiometric, scopeChoice)
+                                    if (!saved) {
+                                        error = "Unable to save your security settings right now."
+                                    }
+                                    isSaving = false
+                                }
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.BlueAccent),
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    enabled = !isSaving,
+                ) {
+                    Text(if (isSaving) "Saving..." else "Save security settings", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoltflowBottomNav(
+    current: Screen,
+    hasUnread: Boolean,
+    hazeState: dev.chrisbanes.haze.HazeState,
+    onNavigate: (Screen) -> Unit
+) {
+    val view = LocalView.current
     val items = listOf(
         NavItem("Home", Screen.Home, Icons.Outlined.Home),
         NavItem("Pay", Screen.Pay, Icons.Outlined.CreditCard),
@@ -439,7 +858,7 @@ private fun VoltflowBottomNav(current: Screen, hasUnread: Boolean, onNavigate: (
                 .height(72.dp),
             shape = RoundedCornerShape(36.dp),
             color = Color.Transparent,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
             shadowElevation = 18.dp
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -447,8 +866,11 @@ private fun VoltflowBottomNav(current: Screen, hasUnread: Boolean, onNavigate: (
                     modifier = Modifier
                         .matchParentSize()
                         .clip(RoundedCornerShape(36.dp))
-                        .background(VoltflowDesign.BottomNavBg)
-                        .blur(22.dp)
+                        .hazeEffect(
+                            state = hazeState,
+                            style = HazeMaterials.ultraThin(),
+                        )
+                        .background(VoltflowDesign.BottomNavBg.copy(alpha = 0.35f))
                 )
                 val itemWidth = navWidth / items.size
                 val indicatorOffset by animateDpAsState(
@@ -479,7 +901,10 @@ private fun VoltflowBottomNav(current: Screen, hasUnread: Boolean, onNavigate: (
                                 .clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
-                                ) { onNavigate(item.screen) },
+                                ) {
+                                    performPlatformHaptic(view, android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+                                    onNavigate(item.screen)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -533,6 +958,8 @@ private fun AuthScreen(
     var isSignup by rememberSaveable { mutableStateOf(false) }
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val logoGradient = VoltflowDesign.LogoGradient
 
     Column(
         modifier = Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 32.dp).imePadding(),
@@ -550,12 +977,12 @@ private fun AuthScreen(
                     lineTo(size.width * 0.55f, size.height * 0.4f)
                     close()
                 }
-                drawPath(path, brush = VoltflowDesign.LogoGradient)
+                drawPath(path, brush = logoGradient)
             }
         }
         Text(
             "VOLTFLOW",
-            color = Color.White,
+            color = textColor,
             letterSpacing = 8.sp,
             fontWeight = FontWeight.Black,
             fontSize = 24.sp,
@@ -568,19 +995,19 @@ private fun AuthScreen(
             Surface(
                 modifier = Modifier.matchParentSize().blur(24.dp).offset(y = 4.dp),
                 shape = RoundedCornerShape(32.dp),
-                color = Color.Black.copy(alpha = 0.2f)
+                color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.12f)
             ) {}
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(32.dp),
                 color = VoltflowDesign.CardBg,
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
             ) {
                 Column(modifier = Modifier.padding(28.dp)) {
                     Text(
                         if (isSignup) "Create account" else "Welcome back",
-                        color = Color.White,
+                        color = textColor,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = VoltflowDesign.SoraFont
@@ -678,7 +1105,7 @@ private fun AuthScreen(
                 checked = darkModeEnabled,
                 onCheckedChange = onToggleDarkMode,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
+                    checkedThumbColor = MaterialTheme.colorScheme.surface,
                     checkedTrackColor = VoltflowDesign.BlueAccent,
                     uncheckedTrackColor = VoltflowDesign.IconCircleBg
                 )
@@ -706,6 +1133,7 @@ private fun ProfileHubScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     val profile = state.dashboard.profile
     val displayName = profile?.firstName?.let { "$it ${profile.lastName}" }?.trim()?.ifBlank { "Alex Johnson" } ?: "Alex Johnson"
+    val textColor = MaterialTheme.colorScheme.onSurface
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
@@ -713,19 +1141,19 @@ private fun ProfileHubScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text("Profile", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Text("Profile", color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
         }
         item {
             VoltflowCard(modifier = Modifier.fillMaxWidth().clickable { onOpenProfileOptions() }) {
                 Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Surface(modifier = Modifier.size(64.dp), shape = CircleShape, color = VoltflowDesign.BlueAccent) {
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.background(VoltflowDesign.PrimaryGradient)) {
-                            Text(displayName.take(1).uppercase(), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                            Text(displayName.take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontSize = 24.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
                         }
                     }
                     Spacer(Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(displayName, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                        Text(displayName, color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
                         Text(profile?.email ?: "alex.johnson@email.com", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
                         Text(profile?.accountStatus ?: "Pending", color = VoltflowDesign.WarningAmber, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont)
                     }
@@ -763,9 +1191,9 @@ private fun ProfileHubScreen(
         item {
             VoltflowCard {
                 Row(modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = textColor)
                     Spacer(Modifier.width(16.dp))
-                    Text("Dark Mode", color = Color.White, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
+                    Text("Dark Mode", color = textColor, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
                     Switch(checked = darkModeEnabled, onCheckedChange = onToggleDarkMode, colors = SwitchDefaults.colors(checkedTrackColor = VoltflowDesign.BlueAccent))
                 }
             }
@@ -774,7 +1202,7 @@ private fun ProfileHubScreen(
         item {
             Surface(
                 modifier = Modifier.fillMaxWidth().height(64.dp).clip(RoundedCornerShape(20.dp)).clickable { showLogoutDialog = true },
-                color = Color(0x1AEF4444)
+                color = VoltflowDesign.DestructiveBg
             ) {
                 Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, tint = VoltflowDesign.DestructiveRed)
@@ -800,7 +1228,7 @@ fun VoltflowCard(modifier: Modifier = Modifier, content: @Composable () -> Unit)
         modifier = modifier,
         color = VoltflowDesign.CardBg,
         shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         content()
     }
@@ -821,16 +1249,17 @@ fun VoltflowRow(
     onAction: () -> Unit = {},
     isDropdown: Boolean = false
 ) {
+    val textColor = MaterialTheme.colorScheme.onSurface
     Row(
         modifier = Modifier.fillMaxWidth().height(72.dp).clickable(enabled = onClick != null) { onClick?.invoke() }.padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+            Icon(icon, contentDescription = null, tint = textColor, modifier = Modifier.size(22.dp))
         }
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
+            Text(title, color = textColor, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
             if (subtitle != null) Text(subtitle, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
         }
         if (hasToggle) {
@@ -840,7 +1269,7 @@ fun VoltflowRow(
         } else if (isDropdown) {
             Surface(shape = RoundedCornerShape(12.dp), color = VoltflowDesign.IconCircleBg) {
                 Row(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(description ?: "", color = Color.White, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    Text(description ?: "", color = textColor, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
                     Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = VoltflowDesign.GrayText, modifier = Modifier.size(18.dp))
                 }
             }
@@ -857,13 +1286,14 @@ fun VoltflowDivider() {
 
 @Composable
 fun VoltflowHeader(title: String, subtitle: String, onBack: () -> Unit) {
+    val textColor = MaterialTheme.colorScheme.onSurface
     Row(modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(top = 16.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onBack, modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.HeaderCircle)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = textColor)
         }
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(title, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Text(title, color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
             Text(subtitle, color = VoltflowDesign.GrayText, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
         }
     }
@@ -880,10 +1310,10 @@ fun VoltflowButton(text: String, icon: ImageVector? = null, onClick: () -> Unit)
     ) {
         Box(modifier = Modifier.fillMaxSize().background(VoltflowDesign.PrimaryGradient), contentAlignment = Alignment.Center) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp, fontFamily = VoltflowDesign.SoraFont)
+                Text(text, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp, fontFamily = VoltflowDesign.SoraFont)
                 if (icon != null) {
                     Spacer(Modifier.width(10.dp))
-                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -930,8 +1360,8 @@ fun VoltflowInput(
             unfocusedContainerColor = VoltflowDesign.InputBg,
             focusedIndicatorColor = VoltflowDesign.BlueAccent,
             unfocusedIndicatorColor = Color.Transparent,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             cursorColor = VoltflowDesign.BlueAccent
         ),
         textStyle = LocalTextStyle.current.copy(fontFamily = VoltflowDesign.ManropeFont, fontSize = 16.sp),
@@ -947,13 +1377,14 @@ fun VoltflowInput(
 
 @Composable
 fun OfflineBanner(modifier: Modifier = Modifier) {
+    val textColor = MaterialTheme.colorScheme.onSurface
     Surface(
         modifier = modifier
             .statusBarsPadding()
             .padding(top = 12.dp)
             .clip(RoundedCornerShape(16.dp)),
-        color = Color(0xFF1F2937),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+        color = VoltflowDesign.CardBgSolid,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
         shadowElevation = 8.dp
     ) {
         Row(
@@ -962,127 +1393,119 @@ fun OfflineBanner(modifier: Modifier = Modifier) {
         ) {
             Icon(Icons.Outlined.SignalWifiOff, contentDescription = null, tint = VoltflowDesign.WarningAmber, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("You're offline", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.ManropeFont)
+            Text("You're offline", color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.ManropeFont)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VoltflowReloadDialog(onReload: () -> Unit, onCancel: () -> Unit) {
-    AlertDialog(
+    val textColor = MaterialTheme.colorScheme.onSurface
+    ModalBottomSheet(
         onDismissRequest = onCancel,
         containerColor = VoltflowDesign.ModalBg,
-        modifier = Modifier.clip(RoundedCornerShape(28.dp)),
-        title = {
-            Text(
-                "Session taking longer",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontFamily = VoltflowDesign.SoraFont
-            )
-        },
-        text = {
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Session taking longer",
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    fontFamily = VoltflowDesign.SoraFont,
+                )
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = VoltflowDesign.GrayText,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onCancel() },
+                )
+            }
             Text(
                 "We're taking longer than expected. Reload session?",
                 color = VoltflowDesign.GrayText,
                 fontFamily = VoltflowDesign.ManropeFont
             )
-        },
-        confirmButton = {
             Button(
                 onClick = onReload,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.BlueAccent)
             ) {
-                Text("Reload", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                Text("Reload", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
+            TextButton(onClick = onCancel, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text("Cancel", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
             }
+            Spacer(Modifier.height(12.dp))
         }
-    )
+    }
 }
 
 @Composable
-private fun VoltflowLockOverlay(
-    message: String,
-    biometricEnabled: Boolean,
-    biometricAvailable: Boolean,
-    hasPin: Boolean,
-    onUnlock: () -> Unit,
-    onCancel: () -> Unit,
+private fun VoltflowPinFallbackOverlay(
+    lockoutRemainingMillis: Long,
+    attemptsRemaining: Int,
+    inlineError: String?,
+    onVerifyPin: suspend (String) -> PinVerificationResult,
+    onAuthenticated: () -> Unit,
+    onDismiss: () -> Unit,
+    onAuthState: (attemptsRemaining: Int, lockoutRemainingMillis: Long, message: String?) -> Unit,
 ) {
-    val context = LocalContext.current
-    val activity = context as? FragmentActivity
-    val executor = remember { ContextCompat.getMainExecutor(context) }
-    val prefs = remember { UserPreferencesStore(context) }
+    val textColor = MaterialTheme.colorScheme.onSurface
     val scope = rememberCoroutineScope()
-    var usePin by remember { mutableStateOf(!biometricEnabled || !biometricAvailable) }
     var pin by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
+    var localError by remember { mutableStateOf<String?>(null) }
 
-    val prompt = remember(activity) {
-        if (activity == null) null else BiometricPrompt(
-            activity,
-            executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    onUnlock()
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    error = errString.toString()
-                    usePin = true
-                }
-
-                override fun onAuthenticationFailed() {
-                    error = "Authentication failed"
-                    usePin = true
-                }
-            }
-        )
-    }
-
-    LaunchedEffect(biometricEnabled, biometricAvailable, usePin) {
-        if (biometricEnabled && biometricAvailable && !usePin) {
-            val info = BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Unlock Voltflow")
-                .setSubtitle("Verify your identity")
-                .setConfirmationRequired(false)
-                .setNegativeButtonText("Use PIN")
-                .build()
-            prompt?.authenticate(info)
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f))) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f))) {
         Surface(
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(24.dp),
             shape = RoundedCornerShape(28.dp),
             color = VoltflowDesign.ModalBg,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
         ) {
             Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(modifier = Modifier.size(64.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Outlined.Lock, contentDescription = null, tint = textColor, modifier = Modifier.size(28.dp))
                 }
                 Spacer(Modifier.height(16.dp))
-                Text(message, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                Text("Enter PIN", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
                 Spacer(Modifier.height(8.dp))
-                Text("Enter your PIN to continue", color = VoltflowDesign.GrayText, fontSize = 14.sp, textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
+                Text("Enter your 6-digit PIN to continue", color = VoltflowDesign.GrayText, fontSize = 14.sp, textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
                 Spacer(Modifier.height(16.dp))
 
-                if (hasPin) {
+                if (lockoutRemainingMillis > 0L) {
+                    Text(
+                        "Too many attempts. Try again in ${formatLockout(lockoutRemainingMillis)}",
+                        color = VoltflowDesign.DestructiveRed,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = VoltflowDesign.ManropeFont
+                    )
+                } else {
                     BasicTextField(
                         value = pin,
                         onValueChange = { pin = it.filter { ch -> ch.isDigit() }.take(6) },
-                        textStyle = LocalTextStyle.current.copy(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont),
+                        textStyle = LocalTextStyle.current.copy(color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont),
+                        visualTransformation = PasswordVisualTransformation(mask = '•'),
                         cursorBrush = Brush.verticalGradient(listOf(VoltflowDesign.BlueAccent, VoltflowDesign.BlueAccent)),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         decorationBox = { inner ->
                             Box(
                                 modifier = Modifier
@@ -1100,90 +1523,137 @@ private fun VoltflowLockOverlay(
                             }
                         }
                     )
-                } else {
-                    Text("Set up an app PIN in Security Settings.", color = VoltflowDesign.WarningAmber, fontSize = 13.sp, textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "$attemptsRemaining attempts remaining",
+                        color = VoltflowDesign.GrayText,
+                        fontSize = 12.sp,
+                        fontFamily = VoltflowDesign.ManropeFont
+                    )
                 }
 
-                error?.let {
+                (inlineError ?: localError)?.let {
                     Spacer(Modifier.height(8.dp))
-                    Text(it, color = VoltflowDesign.WarningAmber, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    Text(it, color = VoltflowDesign.DestructiveRed, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
                 }
 
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(
-                        onClick = onCancel,
+                        onClick = onDismiss,
                         shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                     ) {
-                        Text("Cancel", color = Color.White, fontFamily = VoltflowDesign.SoraFont)
+                        Text("Cancel", color = textColor, fontFamily = VoltflowDesign.SoraFont)
                     }
                     Button(
                         onClick = {
-                            if (!hasPin) return@Button
+                            if (lockoutRemainingMillis > 0L) return@Button
                             scope.launch {
-                                val ok = prefs.verifyPin(pin)
-                                if (ok) {
-                                    onUnlock()
-                                } else {
-                                    error = "Incorrect PIN"
+                                when (val result = onVerifyPin(pin)) {
+                                    is PinVerificationResult.Success -> onAuthenticated()
+                                    is PinVerificationResult.Failed -> {
+                                        onAuthState(result.attemptsRemaining, 0L, "Incorrect PIN")
+                                        localError = "Incorrect PIN"
+                                    }
+                                    is PinVerificationResult.Locked -> {
+                                        onAuthState(0, result.remainingMillis, "Too many attempts. Try again in ${formatLockout(result.remainingMillis)}")
+                                        localError = "Too many attempts"
+                                    }
+                                    is PinVerificationResult.Error -> {
+                                        onAuthState(attemptsRemaining, 0L, result.message)
+                                        localError = result.message
+                                    }
                                 }
+                                pin = ""
                             }
                         },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.BlueAccent)
                     ) {
-                        Text("Unlock", color = Color.White, fontFamily = VoltflowDesign.SoraFont)
+                        Text("Continue", color = MaterialTheme.colorScheme.onPrimary, fontFamily = VoltflowDesign.SoraFont)
                     }
-                }
-                if (biometricEnabled && biometricAvailable) {
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Use biometrics",
-                        color = VoltflowDesign.BlueAccent,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
-                        fontFamily = VoltflowDesign.ManropeFont,
-                        modifier = Modifier.clickable {
-                            error = null
-                            usePin = false
-                        }
-                    )
                 }
             }
         }
     }
 }
 
+private fun formatLockout(remainingMillis: Long): String {
+    val total = (remainingMillis / 1000L).coerceAtLeast(0L)
+    val min = total / 60
+    val sec = total % 60
+    return String.format("%d:%02d", min, sec)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VoltflowLogoutDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    AlertDialog(
+    val textColor = MaterialTheme.colorScheme.onSurface
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = VoltflowDesign.ModalBg,
-        modifier = Modifier.clip(RoundedCornerShape(28.dp)),
-        title = {
-            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(64.dp).clip(CircleShape).background(VoltflowDesign.DestructiveBg), contentAlignment = Alignment.Center) {
-                    Text("!", color = VoltflowDesign.DestructiveRed, fontSize = 36.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = VoltflowDesign.GrayText,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onDismiss() },
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(VoltflowDesign.DestructiveBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("!", color = VoltflowDesign.DestructiveRed, fontSize = 36.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+            }
+            Text("Logout", color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Text(
+                "Are you sure you want to logout?",
+                color = VoltflowDesign.GrayText,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                fontFamily = VoltflowDesign.ManropeFont
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.IconCircleBg)
+                ) {
+                    Text("Cancel", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
                 }
-                Spacer(Modifier.height(20.dp))
-                Text("Logout", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.DestructiveRed)
+                ) {
+                    Text("Logout", color = MaterialTheme.colorScheme.onError, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                }
             }
-        },
-        text = {
-            Text("Are you sure you want to logout?", color = VoltflowDesign.GrayText, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 16.sp, fontFamily = VoltflowDesign.ManropeFont)
-        },
-        confirmButton = {
-            Button(onClick = onConfirm, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(26.dp), colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.DestructiveRed)) {
-                Text("Logout", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(26.dp), colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.IconCircleBg)) {
-                Text("Cancel", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
-            }
+            Spacer(Modifier.height(12.dp))
         }
-    )
+    }
 }
 
 @Composable
@@ -1201,21 +1671,30 @@ fun SectionLabel(text: String) {
 
 @Composable
 fun ActionChip(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val textColor = MaterialTheme.colorScheme.onSurface
     Surface(
         modifier = modifier.height(60.dp).clickable { onClick() },
         color = VoltflowDesign.CardBg,
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             Icon(icon, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(12.dp))
-            Text(text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, fontFamily = VoltflowDesign.ManropeFont)
+            Text(text, color = textColor, fontWeight = FontWeight.Bold, fontSize = 15.sp, fontFamily = VoltflowDesign.ManropeFont)
         }
     }
 }
 
 private data class NavItem(val label: String, val screen: Screen, val icon: ImageVector)
+
+private fun performPlatformHaptic(view: android.view.View, constant: Int) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        view.performHapticFeedback(constant)
+    } else {
+        view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+    }
+}
 
 
 

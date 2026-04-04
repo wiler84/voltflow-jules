@@ -22,14 +22,26 @@ import kotlinx.coroutines.launch
 import android.os.SystemClock
 
 class MainActivity : ComponentActivity() {
+    private var repository: VoltflowRepository? = null
+
+    private fun getRepository(): VoltflowRepository {
+        return repository ?: VoltflowRepository(
+            applicationContext,
+            MockPaymentProcessor()
+        ).also {
+            repository = it
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val repository = VoltflowRepository(applicationContext, MockPaymentProcessor())
         val splashStart = SystemClock.elapsedRealtime()
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition {
             val elapsed = SystemClock.elapsedRealtime() - splashStart
-            elapsed < 1_000 || (repository.uiState.value.isLoading && elapsed < 10_000)
+            val repo = getRepository()
+            // Splash persists for minimum 1s, or while loading (max 10s)
+            elapsed < 1_000 || (repo.uiState.value.isLoading && elapsed < 10_000)
         }
 
         enableEdgeToEdge()
@@ -45,7 +57,7 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val darkModePref by prefs.darkModeFlow.collectAsState(initial = null)
             val mainViewModel: MainViewModel = viewModel(
-                factory = MainViewModel.factory(repository)
+                factory = MainViewModel.factory(getRepository())
             )
             val uiState by mainViewModel.uiState.collectAsState()
 

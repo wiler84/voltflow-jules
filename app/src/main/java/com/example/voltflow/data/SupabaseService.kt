@@ -1,10 +1,14 @@
 package com.example.voltflow.data
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.example.voltflow.BuildConfig
@@ -28,9 +32,12 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.put
 import kotlinx.serialization.json.jsonPrimitive
 import java.time.Instant
+import java.util.Locale
 import java.util.UUID
 
 private const val PREFS_NAME = "voltflow_supabase"
@@ -195,6 +202,56 @@ class SupabaseService(context: Context) {
         upsert("security_settings", settings, conflictColumn = "user_id")
     }
 
+    suspend fun requestPinResetToken(): PinResetRequestResult {
+        val session = requireValidSession()
+        val response = client.post("$supabaseUrl/functions/v1/request-pin-reset") {
+            authorized(session.accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { })
+        }
+        val raw = response.bodyAsText()
+        ensureSuccess(raw, response.status.isSuccess())
+        val root = runCatching { json.parseToJsonElement(raw) as? JsonObject }.getOrNull()
+        return PinResetRequestResult(
+            cooldownSeconds = root?.get("cooldown_seconds")?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 59,
+            resendCount = root?.get("resend_count")?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 0,
+            maxResends = root?.get("max_resends")?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 4,
+            expiresAt = root?.get("expires_at")?.jsonPrimitive?.contentOrNull
+        )
+    }
+
+    suspend fun verifyPinResetToken(token: String): Boolean {
+        val session = requireValidSession()
+        val response = client.post("$supabaseUrl/functions/v1/verify-pin-reset-token") {
+            authorized(session.accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(
+                buildJsonObject {
+                    put("token", token)
+                }
+            )
+        }
+        val raw = response.bodyAsText()
+        ensureSuccess(raw, response.status.isSuccess())
+        val root = runCatching { json.parseToJsonElement(raw) as? JsonObject }.getOrNull()
+        return root?.get("valid")?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: true
+    }
+
+    suspend fun completePinReset(token: String, newPin: String) {
+        val session = requireValidSession()
+        val response = client.post("$supabaseUrl/functions/v1/complete-pin-reset") {
+            authorized(session.accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(
+                buildJsonObject {
+                    put("token", token)
+                    put("new_pin", newPin)
+                }
+            )
+        }
+        ensureSuccess(response.bodyAsText(), response.status.isSuccess())
+    }
+
     suspend fun addPaymentMethod(paymentMethod: PaymentMethod) {
         insert("payment_methods", paymentMethod)
     }
@@ -255,7 +312,8 @@ class SupabaseService(context: Context) {
             parameter("user_id", "eq.$userId")
             header("Prefer", "resolution=merge-duplicates,return=representation")
             contentType(ContentType.Application.Json)
-            setBody(mapOf("is_read" to true, "read_at" to Instant.now().toString()))
+            // Use explicit JSON string to avoid Ktor serialization issues with mixed-type maps
+            setBody("""{"is_read":true,"read_at":"${Instant.now()}"}""")
         }
         ensureSuccess(response.bodyAsText(), response.status.isSuccess())
     }
@@ -270,7 +328,7 @@ class SupabaseService(context: Context) {
         ensureSuccess(response.bodyAsText(), response.status.isSuccess())
     }
 
-    fun buildCurrentDevice(sessionToken: String, userId: String): ConnectedDevice {
+    fun buildCurrentDevice(sessionToken: String, userId: String, pushToken: String? = null): ConnectedDevice {
         val now = Instant.now().toString()
         return ConnectedDevice(
             userId = userId,
@@ -278,9 +336,30 @@ class SupabaseService(context: Context) {
             deviceName = "${Build.MANUFACTURER} ${Build.MODEL}".trim(),
             platform = "Android ${Build.VERSION.RELEASE}",
             lastActive = now,
-            location = null,
+            location = bestEffortLocationLabel(),
             sessionToken = sessionToken,
+            pushToken = pushToken,
         )
+    }
+
+    private fun bestEffortLocationLabel(): String? {
+        val fineGranted = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!fineGranted && !coarseGranted) return null
+
+        return runCatching {
+            val manager = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+            val providers = manager.getProviders(true)
+            val lastKnown = providers
+                .mapNotNull { provider ->
+                    runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+                }
+                .maxByOrNull { it.time }
+                ?: return "Location unavailable"
+            val lat = String.format(Locale.US, "%.4f", lastKnown.latitude)
+            val lon = String.format(Locale.US, "%.4f", lastKnown.longitude)
+            "Lat $lat, Lon $lon"
+        }.getOrNull()
     }
 
     private suspend inline fun <reified T : Any> fetchListSafe(
