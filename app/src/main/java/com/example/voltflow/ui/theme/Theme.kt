@@ -110,6 +110,7 @@ fun VoltflowTheme(
             dividerColor = Color(0x1FFFFFFF),
             primaryGradient = Brush.horizontalGradient(listOf(Color(0xFF3B82F6), Color(0xFF2563EB))),
             logoGradient = Brush.verticalGradient(listOf(Color(0xFF60A5FA), Color(0xFF3B82F6))),
+            walletGradient = Brush.linearGradient(listOf(Color(0xFF48A7FF), Color(0xFF2DD4BF))),
         )
     } else {
         // Light theme custom colors - map to MaterialTheme colors for consistency
@@ -131,6 +132,7 @@ fun VoltflowTheme(
             dividerColor = Color(0xFFE9EEF5),
             primaryGradient = Brush.horizontalGradient(listOf(Color(0xFF2F7FCF), Color(0xFF4A9AE8))),
             logoGradient = Brush.verticalGradient(listOf(Color(0xFF4A9AE8), Color(0xFF2F7FCF))),
+            walletGradient = Brush.linearGradient(listOf(Color(0xFF48A7FF), Color(0xFF2DD4BF))),
         )
     }
 

@@ -10,13 +10,47 @@ import com.example.voltflow.data.PinResetRequestResult
 import com.example.voltflow.data.UiState
 import com.example.voltflow.data.UtilityType
 import com.example.voltflow.data.VoltflowRepository
+import com.example.voltflow.data.UsageRange
+import com.example.voltflow.data.UsageChartData
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
+data class UsageChartState(
+    val range: UsageRange = UsageRange.SEVEN_DAYS,
+    val isMoneyMode: Boolean = true,
+    val data: UsageChartData? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
 
 class MainViewModel(
     private val repository: VoltflowRepository,
 ) : ViewModel() {
     val uiState: StateFlow<UiState> = repository.uiState
+    val uiEvents = repository.uiEvents
+
+    // Removed consumeMessage – UI events are now collected via the Channel.
+
+    private val _usageChartState = MutableStateFlow(UsageChartState())
+    val usageChartState: StateFlow<UsageChartState> = _usageChartState
+
+    init {
+        loadChartData(UsageRange.SEVEN_DAYS)
+    }
+
+    fun loadChartData(range: UsageRange, isMoneyMode: Boolean = usageChartState.value.isMoneyMode) {
+        viewModelScope.launch {
+            _usageChartState.value = _usageChartState.value.copy(isLoading = true, range = range, isMoneyMode = isMoneyMode)
+            repository.getUsageChartData(range, isMoneyMode).collect { result ->
+                result.onSuccess { chart ->
+                    _usageChartState.value = UsageChartState(range = range, isMoneyMode = isMoneyMode, data = chart, isLoading = false)
+                }.onFailure { err ->
+                    _usageChartState.value = UsageChartState(range = range, isMoneyMode = isMoneyMode, isLoading = false, error = err.message)
+                }
+            }
+        }
+    }
 
     fun signIn(email: String, password: String) {
         viewModelScope.launch { repository.signIn(email, password) }
@@ -50,12 +84,12 @@ class MainViewModel(
         viewModelScope.launch { repository.setAutopay(enabled, paymentMethodId, amountLimit, billingCycle, paymentDay, meterNumber) }
     }
 
-    fun fundWallet(amount: Double) {
-        viewModelScope.launch { repository.fundWallet(amount) }
+    fun fundWallet(amount: Double, paymentMethodId: String? = null) {
+        viewModelScope.launch { repository.fundWallet(amount, paymentMethodId) }
     }
 
-    fun withdrawWallet(amount: Double) {
-        viewModelScope.launch { repository.withdrawWallet(amount) }
+    fun withdrawWallet(amount: Double, paymentMethodId: String? = null) {
+        viewModelScope.launch { repository.withdrawWallet(amount, paymentMethodId) }
     }
 
     fun payUtility(utilityType: UtilityType, amount: Double, meterNumber: String, paymentMethodId: String?, useWallet: Boolean = true) {
@@ -76,32 +110,7 @@ class MainViewModel(
         viewModelScope.launch { repository.revokeDevice(deviceId) }
     }
 
-    fun setBiometricEnabled(enabled: Boolean) {
-        viewModelScope.launch { repository.setBiometricEnabled(enabled) }
-    }
 
-    fun setMfaEnabled(enabled: Boolean) {
-        viewModelScope.launch { repository.setMfaEnabled(enabled) }
-    }
-
-    fun setLockScope(scope: LockScope) {
-        viewModelScope.launch { repository.setLockScope(scope) }
-    }
-
-    suspend fun verifyPin(pin: String): PinVerificationResult = repository.verifyPin(pin)
-
-    fun setPin(pin: String) {
-        viewModelScope.launch { repository.setPin(pin) }
-    }
-
-    suspend fun saveSecuritySetup(pin: String, enableBiometric: Boolean, scope: LockScope): Boolean =
-        repository.saveSecuritySetup(pin, enableBiometric, scope)
-
-    suspend fun requestPinResetToken(): PinResetRequestResult = repository.requestPinResetToken()
-
-    suspend fun verifyPinResetToken(token: String): Boolean = repository.verifyPinResetToken(token)
-
-    suspend fun completePinReset(token: String, newPin: String): Boolean = repository.completePinReset(token, newPin)
 
     fun markNotificationRead(notificationId: String) {
         viewModelScope.launch { repository.markNotificationRead(notificationId) }
@@ -119,7 +128,11 @@ class MainViewModel(
         viewModelScope.launch { repository.setDarkMode(enabled) }
     }
 
-    fun consumeMessage() = repository.consumeMessage()
+    fun updatePassword(newPassword: String) {
+        viewModelScope.launch { repository.updatePassword(newPassword) }
+    }
+
+
     fun consumeError() = repository.consumeError()
 
     companion object {

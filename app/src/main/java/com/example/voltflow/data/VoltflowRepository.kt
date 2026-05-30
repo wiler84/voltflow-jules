@@ -9,21 +9,32 @@ import com.example.voltflow.data.local.TransactionEntity
 import com.example.voltflow.data.local.VoltflowDatabase
 import com.example.voltflow.data.local.WalletEntity
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
+import java.time.LocalDate
 import org.mindrot.jbcrypt.BCrypt
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
+import java.util.Locale
 
 class VoltflowRepository(
     context: Context,
@@ -32,14 +43,25 @@ class VoltflowRepository(
 ) {
     private val service = SupabaseService(context)
     private val preferences = UserPreferencesStore(context)
-    private val database = VoltflowDatabase.create(context)
-    private val dao = database.dao()
+    private val database by lazy { VoltflowDatabase.create(context) }
+    private val dao by lazy { database.dao() }
     private val networkMonitor = NetworkMonitor(context)
-    private val repositoryScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e("SyncFlow", "Unhandled repository error", throwable)
+        _uiState.update { it.copy(activeError = "Sync error: ${throwable.localizedMessage}") }
+    }
+    
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val networkDispatcher = ioDispatcher.limitedParallelism(3)
+    private val repositoryScope = CoroutineScope(SupervisorJob() + ioDispatcher + exceptionHandler)
     private var realtimeService: SupabaseRealtimeService? = null
     private var realtimeStreams: RealtimeStreams? = null
     @Volatile
     private var lastKnownPushToken: String? = null
+    private val circuitBreaker = CircuitBreaker()
+
+    // GATING STARTUP (Point 2)
+    private var _startupSyncCompleted = false
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -49,8 +71,13 @@ class VoltflowRepository(
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    // ONE-TIME UI EVENTS (Point 2)
+    private val _uiEvents = Channel<String>(Channel.BUFFERED)
+    val uiEvents = _uiEvents.receiveAsFlow()
+
     init {
         repositoryScope.launch {
+            Log.d("AuthFlow", "Repository init: Starting session restore")
             restoreSession()
             startSyncLoop()
         }
@@ -64,20 +91,65 @@ class VoltflowRepository(
         }
     }
 
+    // SAFE NOTIFICATION INSERTION (Point 1)
+    private suspend fun safeAddNotification(
+        title: String,
+        body: String,
+        type: String
+    ) {
+        val startTime = System.currentTimeMillis()
+        val session = service.currentSession()
+        
+        if (!_startupSyncCompleted) {
+            Log.w("NotificationFlow", "SafeInsert blocked: Startup sync not yet complete. Notification: $title")
+            return
+        }
+
+        if (session == null || session.userId.isBlank()) {
+            Log.w("NotificationFlow", "SafeInsert blocked: No authenticated session. Notification: $title")
+            return
+        }
+
+        Log.d("NotificationFlow", "SafeInsert started: [Type: $type, User: ${session.userId}]")
+        runCatching {
+            service.addNotification(
+                AppNotification(
+                    userId = session.userId,
+                    title = title,
+                    body = body,
+                    type = type,
+                )
+            )
+        }.onSuccess {
+            Log.d("NotificationFlow", "SafeInsert success in ${System.currentTimeMillis() - startTime}ms")
+        }.onFailure { error ->
+            Log.e("NotificationFlow", "SafeInsert failed: ${error.message}")
+        }
+    }
+
     suspend fun restoreSession() {
-        mutateLoading(true)
+        val startTime = System.currentTimeMillis()
+        Log.d("AuthFlow", "RestoreSession started")
         withContext(ioDispatcher) {
             val session = service.currentSession()
             if (session == null) {
-                _uiState.update { it.copy(isLoading = false, isAuthenticated = false) }
+                Log.d("AuthFlow", "RestoreSession: No local session found")
+                _uiState.update { it.copy(isInitializing = false, isAuthReady = true, isLoading = false, isAuthenticated = false) }
                 return@withContext
             }
+            
+            Log.d("AuthFlow", "RestoreSession: Found session for ${session.userId}")
+            _uiState.update { it.copy(isInitializing = false, isAuthReady = true, isAuthenticated = true) }
+
             runCatching {
                 service.requireValidSession()
-                startRealtimeSubscriptions(session)
+                repositoryScope.launch { startRealtimeSubscriptions(session) }
                 syncAllData(session.userId)
+            }.onSuccess {
+                _startupSyncCompleted = true
+                Log.d("AuthFlow", "RestoreSession complete in ${System.currentTimeMillis() - startTime}ms")
             }.onFailure { error ->
-                Log.e("VoltflowRepository", "restoreSession", error)
+                Log.e("AuthFlow", "RestoreSession failed", error)
                 service.clearSession()
                 _uiState.update {
                     it.copy(
@@ -88,49 +160,58 @@ class VoltflowRepository(
                 }
             }
         }
-        mutateLoading(false)
     }
 
     suspend fun signIn(email: String, password: String) {
-        mutateLoading(true)
+        val startTime = System.currentTimeMillis()
+        Log.d("AuthFlow", "SignIn started for $email")
         withContext(ioDispatcher) {
             runCatching {
                 val session = service.signIn(email, password)
+                mutateLoading(true)
                 ensureBootstrapRecords(session)
-                startRealtimeSubscriptions(session)
+                repositoryScope.launch { startRealtimeSubscriptions(session) }
+                val device = service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken)
+                service.upsertDevice(device)
                 syncAllData(session.userId)
-                service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken))
                 trackEvent(session.userId, "sign_in")
-            }.onFailure { publishError(it) }
+            }.onSuccess {
+                _startupSyncCompleted = true
+                Log.d("AuthFlow", "SignIn success in ${System.currentTimeMillis() - startTime}ms")
+            }.onFailure { 
+                Log.e("AuthFlow", "SignIn failure", it)
+                publishError(it) 
+            }
         }
         mutateLoading(false)
     }
 
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String) {
-        mutateLoading(true)
+        val startTime = System.currentTimeMillis()
+        Log.d("AuthFlow", "SignUp started for $email")
         withContext(ioDispatcher) {
             runCatching {
-                // Fix for Error 1: Supabase signUp returns a User object, not always a session with tokens.
                 service.signUp(email, password, firstName, lastName)
-                
-                // Follow up with signIn to ensure we have a session snapshot.
                 val session = service.signIn(email, password)
                 
+                mutateLoading(true)
                 ensureBootstrapRecords(session)
-                startRealtimeSubscriptions(session)
-                service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken))
+                repositoryScope.launch { startRealtimeSubscriptions(session) }
+                val device = service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken)
+                service.upsertDevice(device)
                 syncAllData(session.userId)
-                service.addNotification(
-                    AppNotification(
-                        userId = session.userId,
-                        title = "Welcome to Voltflow",
-                        body = "Your account is ready for utility payments.",
-                        type = "system",
-                    )
+                
+                _startupSyncCompleted = true
+                safeAddNotification(
+                    title = "Welcome to Voltflow",
+                    body = "Your account is ready for utility payments.",
+                    type = "system",
                 )
                 trackEvent(session.userId, "sign_up")
+            }.onSuccess {
+                Log.d("AuthFlow", "SignUp success in ${System.currentTimeMillis() - startTime}ms")
             }.onFailure { error ->
-                Log.e("VoltflowRepository", "Signup failed", error)
+                Log.e("AuthFlow", "SignUp failed", error)
                 publishError(error)
             }
         }
@@ -138,17 +219,15 @@ class VoltflowRepository(
     }
 
     private suspend fun startRealtimeSubscriptions(session: SessionSnapshot) {
+        Log.d("SyncFlow", "Realtime: Connecting for ${session.userId}")
         try {
-            // Initialize realtime service with Supabase credentials
             realtimeService = SupabaseRealtimeService(service.supabaseUrl(), service.anonKey())
             realtimeStreams = realtimeService?.connect(session)
             
-            // Launch collection jobs for realtime flows
             realtimeStreams?.let { streams ->
                 repositoryScope.launch {
                     streams.wallet.collect { wallet ->
                         _uiState.update { it.copy(dashboard = it.dashboard.copy(wallet = wallet)) }
-                        // Cache to Room
                         dao.upsertWallet(WalletEntity(userId = session.userId, balance = wallet.balance, updatedAt = wallet.updatedAt))
                     }
                 }
@@ -160,7 +239,6 @@ class VoltflowRepository(
                 repositoryScope.launch {
                     streams.notifications.collect { notifications ->
                         _uiState.update { it.copy(dashboard = it.dashboard.copy(notifications = notifications)) }
-                        // Cache to Room
                         dao.upsertNotifications(
                             notifications.map { notification ->
                                 NotificationEntity(
@@ -189,7 +267,6 @@ class VoltflowRepository(
                 repositoryScope.launch {
                     streams.bills.collect { bills ->
                         _uiState.update { it.copy(dashboard = it.dashboard.copy(bills = bills)) }
-                        // Cache to Room
                         dao.upsertBills(
                             bills.map { bill ->
                                 BillEntity(
@@ -216,28 +293,36 @@ class VoltflowRepository(
                 }
                 repositoryScope.launch {
                     streams.devices.collect { devices ->
+                        val currentId = service.currentDeviceId()
+                        val isStillValid = devices.any { it.deviceId == currentId }
+                        if (!isStillValid && _uiState.value.isAuthenticated && !devices.isEmpty()) {
+                            Log.w("AuthFlow", "Realtime: Session revoked remotely")
+                            signOut()
+                        }
                         _uiState.update { it.copy(dashboard = it.dashboard.copy(devices = devices)) }
                     }
                 }
             }
-            Log.d("VoltflowRepository", "Realtime subscriptions started successfully")
+            Log.d("SyncFlow", "Realtime: Subscriptions active")
         } catch (e: Exception) {
-            Log.w("VoltflowRepository", "Realtime subscriptions failed, will use polling fallback", e)
+            Log.w("SyncFlow", "Realtime: Connection failed", e)
         }
     }
 
     private suspend fun stopRealtimeSubscriptions() {
+        Log.d("SyncFlow", "Realtime: Disconnecting")
         try {
             realtimeService?.disconnect()
             realtimeService = null
             realtimeStreams = null
-            Log.d("VoltflowRepository", "Realtime subscriptions stopped")
         } catch (e: Exception) {
-            Log.w("VoltflowRepository", "Error stopping realtime subscriptions", e)
+            Log.w("SyncFlow", "Realtime: Disconnect error", e)
         }
     }
 
     suspend fun signOut() {
+        Log.d("AuthFlow", "SignOut started")
+        mutateLoading(true)
         withContext(ioDispatcher) {
             val currentUserId = service.currentSession()?.userId
             runCatching {
@@ -247,34 +332,30 @@ class VoltflowRepository(
                 service.signOut()
             }
             stopRealtimeSubscriptions()
+            _startupSyncCompleted = false
             resetToSignedOutState()
+            Log.d("AuthFlow", "SignOut complete")
         }
     }
 
     suspend fun revokeDevice(deviceId: String) {
+        Log.d("AuthFlow", "RevokeDevice: $deviceId")
         withCurrentUser { session ->
             val currentDeviceId = service.currentDeviceId()
             if (deviceId == currentDeviceId) {
+                mutateLoading(true)
                 runCatching { service.deleteDevice(session.userId, deviceId) }
                 service.signOut()
                 resetToSignedOutState()
                 return@withCurrentUser
             }
             service.deleteDevice(session.userId, deviceId)
-            service.addNotification(
-                AppNotification(
-                    userId = session.userId,
-                    title = "Device signed out",
-                    body = "A device was removed from your active sessions.",
-                    type = "security",
-                )
-            )
-            trackEvent(session.userId, "device_revoked")
             syncAllData(session.userId)
         }
     }
 
     suspend fun refresh() {
+        Log.d("SyncFlow", "Manual refresh triggered")
         withContext(ioDispatcher) {
             val userId = service.currentSession()?.userId ?: return@withContext
             runCatching { syncAllData(userId) }.onFailure { publishError(it) }
@@ -282,6 +363,7 @@ class VoltflowRepository(
     }
 
     suspend fun saveProfile(firstName: String, lastName: String, phone: String) {
+        Log.d("AuthFlow", "SaveProfile: $firstName $lastName")
         withCurrentUser { session ->
             val current = uiState.value.dashboard.profile
             service.upsertProfile(
@@ -299,11 +381,11 @@ class VoltflowRepository(
                 )
             )
             syncAllData(session.userId)
-            trackEvent(session.userId, "profile_updated")
         }
     }
 
     suspend fun setDarkMode(enabled: Boolean) {
+        Log.d("AuthFlow", "SetDarkMode: $enabled")
         withCurrentUser { session ->
             val current = uiState.value.dashboard.profile
             service.upsertProfile(
@@ -324,7 +406,42 @@ class VoltflowRepository(
         }
     }
 
+    suspend fun updatePassword(newPassword: String) {
+        Log.d("AuthFlow", "UpdatePassword")
+        withCurrentUser {
+            service.updatePassword(newPassword)
+            _uiEvents.send("Password updated successfully")
+        }
+    }
+
+    // SQL AGGREGATION (Point 3)
+    fun getUsageChartData(range: UsageRange, isMoneyMode: Boolean): Flow<Result<UsageChartData>> = flow {
+        val session = service.currentSession() ?: return@flow
+        val startTime = System.currentTimeMillis()
+        Log.d("AnalyticsFlow", "FetchAggregatedChart: [Range: ${range.label}, Mode: ${if (isMoneyMode) "Money" else "Usage"}]")
+        try {
+            val points = service.fetchAggregatedUsage(session.userId, range.days, isMoneyMode)
+            
+            val totalValue = points.sumOf { it.value }
+            
+            // Percentage change still needs some historical context, let's keep it simple for now or extend RPC
+            val percentageChange = 0.0 // Could be added to RPC return
+
+            Log.d("AnalyticsFlow", "FetchChart success in ${System.currentTimeMillis() - startTime}ms")
+            emit(Result.success(UsageChartData(
+                points = points,
+                periodLabel = range.label,
+                totalUsage = totalValue,
+                percentageChange = percentageChange
+            )))
+        } catch (e: Exception) {
+            Log.e("AnalyticsFlow", "FetchChart failed", e)
+            emit(Result.failure(e))
+        }
+    }
+
     suspend fun addPaymentMethod(cardBrand: String, cardNumber: String, expiryMonth: Int, expiryYear: Int) {
+        Log.d("PaymentFlow", "AddPaymentMethod: $cardBrand")
         withCurrentUser { session ->
             val methods = uiState.value.dashboard.paymentMethods
             val method = PaymentMethod(
@@ -336,7 +453,6 @@ class VoltflowRepository(
                 isDefault = methods.none { it.isDefault },
             )
             service.addPaymentMethod(method)
-            trackEvent(session.userId, "payment_method_added")
             syncAllData(session.userId)
         }
     }
@@ -349,6 +465,7 @@ class VoltflowRepository(
         paymentDay: Int = 15,
         meterNumber: String? = null,
     ) {
+        Log.d("PaymentFlow", "SetAutopay: Enabled=$enabled, Limit=$amountLimit")
         withCurrentUser { session ->
             service.upsertAutopay(
                 AutopaySettings(
@@ -362,195 +479,19 @@ class VoltflowRepository(
                     updatedAt = Instant.now().toString(),
                 )
             )
-            service.addNotification(
-                AppNotification(
-                    userId = session.userId,
-                    title = if (enabled) "Autopay enabled" else "Autopay paused",
-                    body = if (enabled) "Voltflow will handle eligible bills automatically." else "Automatic charges have been disabled.",
-                    type = "autopay",
-                )
+            
+            safeAddNotification(
+                title = if (enabled) "Autopay enabled" else "Autopay paused",
+                body = if (enabled) "Voltflow will handle eligible bills automatically." else "Automatic charges have been disabled.",
+                type = "autopay",
             )
-            queueEmail(
-                userId = session.userId,
-                toEmail = session.email,
-                subject = if (enabled) "Autopay enabled" else "Autopay paused",
-                body = if (enabled) "Autopay is now active for your Voltflow account." else "Autopay has been disabled for your Voltflow account.",
-                metadata = mapOf(
-                    "type" to "autopay",
-                    "enabled" to enabled.toString(),
-                    "payment_day" to paymentDay.toString(),
-                    "meter_number" to (meterNumber ?: "")
-                ),
-            )
-            trackEvent(session.userId, "autopay_updated")
             syncAllData(session.userId)
         }
     }
 
-    suspend fun setBiometricEnabled(enabled: Boolean) {
-        updateSecuritySettings("biometric_toggled") { it.copy(biometricEnabled = enabled) }
-    }
-
-    suspend fun setMfaEnabled(enabled: Boolean) {
-        updateSecuritySettings("mfa_toggled") { it.copy(mfaEnabled = enabled) }
-    }
-
-    suspend fun setLockScope(scope: LockScope) {
-        updateSecuritySettings("lock_scope_updated") { it.copy(lockScope = scope.value) }
-    }
-
-    suspend fun setPin(pin: String) {
-        val validationError = validateNewPin(pin)
-        if (validationError != null) {
-            publishError(IllegalArgumentException(validationError))
-            return
-        }
-        updateSecuritySettings("pin_set") {
-            it.copy(
-                pinHash = BCrypt.hashpw(pin, BCrypt.gensalt(12)),
-                pinFailedAttempts = 0,
-                pinLockedUntil = null,
-            )
-        }
-    }
-
-    suspend fun saveSecuritySetup(pin: String, enableBiometric: Boolean, scope: LockScope): Boolean {
-        val validationError = validateNewPin(pin)
-        if (validationError != null) {
-            publishError(IllegalArgumentException(validationError))
-            return false
-        }
-
-        return withContext(ioDispatcher) {
-            runCatching {
-                val session = service.requireValidSession()
-                val current = uiState.value.dashboard.securitySettings ?: SecuritySettings(userId = session.userId)
-                val updated = current.copy(
-                    biometricEnabled = enableBiometric,
-                    lockScope = scope.value,
-                    pinHash = BCrypt.hashpw(pin, BCrypt.gensalt(12)),
-                    pinFailedAttempts = 0,
-                    pinLockedUntil = null,
-                    updatedAt = Instant.now().toString(),
-                )
-                service.upsertSecuritySettings(updated)
-                _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
-                service.addNotification(
-                    AppNotification(
-                        userId = session.userId,
-                        title = "Security settings updated",
-                        body = "Your account security preferences were updated.",
-                        type = "security",
-                    )
-                )
-                trackEvent(session.userId, "security_setup_saved")
-                syncAllData(session.userId)
-                true
-            }.getOrElse { error ->
-                publishError(error)
-                false
-            }
-        }
-    }
-
-    suspend fun requestPinResetToken(): PinResetRequestResult =
-        withContext(ioDispatcher) {
-            runCatching { service.requestPinResetToken() }
-                .getOrElse { error ->
-                    publishError(error)
-                    PinResetRequestResult()
-                }
-        }
-
-    suspend fun verifyPinResetToken(token: String): Boolean =
-        withContext(ioDispatcher) {
-            runCatching { service.verifyPinResetToken(token.trim()) }
-                .getOrElse { error ->
-                    publishError(error)
-                    false
-                }
-        }
-
-    suspend fun completePinReset(token: String, newPin: String): Boolean {
-        val validationError = validateNewPin(newPin)
-        if (validationError != null) {
-            publishError(IllegalArgumentException(validationError))
-            return false
-        }
-        return withContext(ioDispatcher) {
-            runCatching {
-                service.completePinReset(token.trim(), newPin)
-                val session = service.requireValidSession()
-                val refreshedSettings = service.fetchSecuritySettings(session.userId)
-                _uiState.update {
-                    it.copy(
-                        dashboard = it.dashboard.copy(securitySettings = refreshedSettings ?: it.dashboard.securitySettings),
-                        transientMessage = "PIN reset successfully"
-                    )
-                }
-                true
-            }.getOrElse { error ->
-                publishError(error)
-                false
-            }
-        }
-    }
-
-    suspend fun verifyPin(pin: String): PinVerificationResult {
-        return withContext(ioDispatcher) {
-            runCatching {
-                val session = service.requireValidSession()
-                val settings = uiState.value.dashboard.securitySettings ?: service.fetchSecuritySettings(session.userId)
-                if (settings == null || settings.pinHash.isNullOrBlank()) {
-                    return@runCatching PinVerificationResult.Error("PIN is not configured")
-                }
-
-                val now = Instant.now()
-                val lockedUntil = settings.pinLockedUntil?.let { runCatching { Instant.parse(it) }.getOrNull() }
-                if (lockedUntil != null && now.isBefore(lockedUntil)) {
-                    val remaining = Duration.between(now, lockedUntil).toMillis().coerceAtLeast(0L)
-                    return@runCatching PinVerificationResult.Locked(lockedUntil.toString(), remaining)
-                }
-
-                val verified = BCrypt.checkpw(pin, settings.pinHash)
-                if (verified) {
-                    val updated = settings.copy(
-                        pinFailedAttempts = 0,
-                        pinLockedUntil = null,
-                        updatedAt = now.toString()
-                    )
-                    service.upsertSecuritySettings(updated)
-                    _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
-                    PinVerificationResult.Success
-                } else {
-                    val failedAttempts = (settings.pinFailedAttempts + 1).coerceAtMost(5)
-                    if (failedAttempts >= 5) {
-                        val lockUntil = now.plusSeconds(5 * 60L)
-                        val updated = settings.copy(
-                            pinFailedAttempts = failedAttempts,
-                            pinLockedUntil = lockUntil.toString(),
-                            updatedAt = now.toString()
-                        )
-                        service.upsertSecuritySettings(updated)
-                        _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
-                        PinVerificationResult.Locked(lockUntil.toString(), 5 * 60_000L)
-                    } else {
-                        val updated = settings.copy(
-                            pinFailedAttempts = failedAttempts,
-                            updatedAt = now.toString()
-                        )
-                        service.upsertSecuritySettings(updated)
-                        _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
-                        PinVerificationResult.Failed((5 - failedAttempts).coerceAtLeast(0))
-                    }
-                }
-            }.getOrElse { error ->
-                PinVerificationResult.Error(error.message ?: "PIN verification failed")
-            }
-        }
-    }
-
-    suspend fun fundWallet(amount: Double) {
+    suspend fun fundWallet(amount: Double, paymentMethodId: String? = null) {
+        val startTime = System.currentTimeMillis()
+        Log.d("PaymentFlow", "FundWallet: $amount")
         if (amount <= 0.0) {
             publishError(IllegalArgumentException("Enter an amount greater than zero"))
             return
@@ -560,6 +501,15 @@ class VoltflowRepository(
             val updatedWallet = wallet.copy(balance = wallet.balance + amount, updatedAt = Instant.now().toString())
             service.upsertWallet(updatedWallet)
             val clientReference = "wallet-${UUID.randomUUID()}"
+            
+            val methods = uiState.value.dashboard.paymentMethods
+            val selectedMethod = if (paymentMethodId != null) {
+                methods.firstOrNull { it.id == paymentMethodId }
+            } else {
+                methods.firstOrNull { it.isDefault } ?: methods.firstOrNull()
+            }
+            val label = selectedMethod?.let { "${it.cardBrand} •••• ${it.cardLast4}" } ?: "External funding"
+            
             service.addPayment(
                 PaymentRecord(
                     userId = session.userId,
@@ -570,7 +520,6 @@ class VoltflowRepository(
                     source = "external",
                     idempotencyKey = clientReference,
                     clientReference = clientReference,
-                    metadata = mapOf("kind" to TransactionKind.WALLET_FUNDING.name),
                 )
             )
             service.addTransaction(
@@ -580,12 +529,11 @@ class VoltflowRepository(
                     utilityType = UtilityType.WALLET.name,
                     amount = amount,
                     status = "succeeded",
-                    paymentMethod = "Wallet top-up",
-                    paymentMethodId = null,
+                    paymentMethod = label,
+                    paymentMethodId = selectedMethod?.id,
                     processorReference = clientReference,
                     description = "Wallet funded successfully",
                     clientReference = clientReference,
-                    metadata = mapOf("source" to "external"),
                     occurredAt = Instant.now().toString(),
                 )
             )
@@ -594,31 +542,24 @@ class VoltflowRepository(
                     userId = session.userId,
                     kind = "deposit",
                     amount = amount,
-                    methodLabel = "External funding",
+                    methodLabel = label,
                     occurredAt = Instant.now().toString(),
                 )
             )
-            service.addNotification(
-                AppNotification(
-                    userId = session.userId,
-                    title = "Wallet funded",
-                    body = "${amountFormatter(amount)} has been added to your wallet.",
-                    type = "wallet",
-                )
+            
+            safeAddNotification(
+                title = "Wallet funded",
+                body = "${amountFormatter(amount)} has been added to your wallet.",
+                type = "wallet",
             )
-            queueEmail(
-                userId = session.userId,
-                toEmail = session.email,
-                subject = "Wallet funded",
-                body = "Your Voltflow wallet was funded with ${amountFormatter(amount)}.",
-                metadata = mapOf("type" to "wallet", "amount" to amount.toString()),
-            )
-            trackEvent(session.userId, "wallet_funded")
+            
             syncAllData(session.userId)
+            Log.d("PaymentFlow", "FundWallet success in ${System.currentTimeMillis() - startTime}ms")
         }
     }
 
-    suspend fun withdrawWallet(amount: Double) {
+    suspend fun withdrawWallet(amount: Double, paymentMethodId: String? = null) {
+        Log.d("PaymentFlow", "WithdrawWallet: $amount to $paymentMethodId")
         if (amount <= 0.0) {
             publishError(IllegalArgumentException("Enter an amount greater than zero"))
             return
@@ -631,29 +572,38 @@ class VoltflowRepository(
             }
             val updatedWallet = wallet.copy(balance = wallet.balance - amount, updatedAt = Instant.now().toString())
             service.upsertWallet(updatedWallet)
+            
+            val methods = uiState.value.dashboard.paymentMethods
+            val selectedMethod = if (paymentMethodId != null) {
+                methods.firstOrNull { it.id == paymentMethodId }
+            } else {
+                methods.firstOrNull { it.isDefault } ?: methods.firstOrNull()
+            }
+            val label = selectedMethod?.let { "${it.cardBrand} •••• ${it.cardLast4}" } ?: "Withdrawal"
+            
             service.addWalletTransaction(
                 WalletTransaction(
                     userId = session.userId,
                     kind = "withdraw",
                     amount = amount,
-                    methodLabel = "Withdrawal",
+                    methodLabel = label,
                     occurredAt = Instant.now().toString(),
                 )
             )
-            service.addNotification(
-                AppNotification(
-                    userId = session.userId,
-                    title = "Withdrawal completed",
-                    body = "${amountFormatter(amount)} has been withdrawn from your wallet.",
-                    type = "wallet",
-                )
+            
+            safeAddNotification(
+                title = "Withdrawal completed",
+                body = "${amountFormatter(amount)} has been withdrawn from your wallet.",
+                type = "wallet",
             )
-            trackEvent(session.userId, "wallet_withdraw")
+            
             syncAllData(session.userId)
         }
     }
 
     suspend fun payUtility(draft: PaymentDraft) {
+        val startTime = System.currentTimeMillis()
+        Log.d("PaymentFlow", "PayUtility started: Amount=${draft.amount}, Utility=${draft.utilityType.label}")
         if (draft.amount <= 0.0) {
             publishError(IllegalArgumentException("Enter an amount greater than zero"))
             return
@@ -664,6 +614,7 @@ class VoltflowRepository(
             val wallet = snapshot.wallet ?: Wallet(session.userId, 0.0)
             val method = snapshot.paymentMethods.firstOrNull { it.id == draft.paymentMethodId }
                 ?: snapshot.paymentMethods.firstOrNull { it.isDefault }
+            
             if (!draft.useWallet && method == null) {
                 publishError(IllegalStateException("Add a valid payment method first"))
                 return@withCurrentUser
@@ -682,97 +633,98 @@ class VoltflowRepository(
             val currentUsage = snapshot.usage ?: UsageMetrics(userId = session.userId)
             val updatedUsage = currentUsage.applyPayment(draft)
 
-            if (draft.useWallet) {
-                service.upsertWallet(updatedWallet)
-            }
-            service.upsertUsage(updatedUsage)
-            service.addPayment(
-                PaymentRecord(
-                    userId = session.userId,
-                    amount = draft.amount,
-                    status = processorResult.status,
-                    processor = "mock",
-                    processorReference = processorResult.processorReference,
-                    paymentMethodId = method?.id,
-                    source = if (draft.useWallet) "wallet" else "card",
-                    idempotencyKey = clientReference,
-                    clientReference = clientReference,
-                    metadata = mapOf("utility_type" to draft.utilityType.name),
-                )
-            )
             val methodLabel = if (draft.useWallet) {
                 "Wallet"
             } else {
                 method?.let { "${it.cardBrand} •••• ${it.cardLast4}" } ?: "Card"
             }
-            service.addTransaction(
-                TransactionRecord(
-                    userId = session.userId,
-                    kind = TransactionKind.UTILITY_PAYMENT.name,
-                    utilityType = draft.utilityType.name,
-                    amount = draft.amount,
-                    status = processorResult.status,
-                    meterNumber = draft.meterNumber, // Add meter number here
-                    paymentMethod = methodLabel,
-                    paymentMethodId = method?.id,
-                    processorReference = processorResult.processorReference,
-                    description = "${draft.utilityType.label} payment completed",
-                    clientReference = clientReference,
-                    metadata = mapOf("source" to if (draft.useWallet) "wallet" else "card"),
-                    occurredAt = Instant.now().toString(),
+
+            // OPTIMISTIC UI
+            _uiState.update { it.copy(
+                dashboard = it.dashboard.copy(
+                    wallet = updatedWallet,
+                    usage = updatedUsage
                 )
-            )
-            service.addWalletTransaction(
-                WalletTransaction(
-                    userId = session.userId,
-                    kind = "payment",
-                    amount = draft.amount,
-                    methodLabel = methodLabel,
-                    occurredAt = Instant.now().toString(),
+            ) }
+
+            runCatching {
+                if (draft.useWallet) {
+                    service.upsertWallet(updatedWallet)
+                }
+                service.upsertUsage(updatedUsage)
+                service.addPayment(
+                    PaymentRecord(
+                        userId = session.userId,
+                        amount = draft.amount,
+                        status = processorResult.status,
+                        processor = "mock",
+                        processorReference = processorResult.processorReference,
+                        paymentMethodId = method?.id,
+                        source = if (draft.useWallet) "wallet" else "card",
+                        idempotencyKey = clientReference,
+                        clientReference = clientReference,
+                    )
                 )
-            )
-            service.addNotification(
-                AppNotification(
-                    userId = session.userId,
+                service.addTransaction(
+                    TransactionRecord(
+                        userId = session.userId,
+                        kind = TransactionKind.UTILITY_PAYMENT.name,
+                        utilityType = draft.utilityType.name,
+                        amount = draft.amount,
+                        status = processorResult.status,
+                        meterNumber = draft.meterNumber,
+                        paymentMethod = methodLabel,
+                        paymentMethodId = method?.id,
+                        processorReference = processorResult.processorReference,
+                        description = "${draft.utilityType.label} payment completed",
+                        clientReference = clientReference,
+                        occurredAt = Instant.now().toString(),
+                    )
+                )
+                service.addWalletTransaction(
+                    WalletTransaction(
+                        userId = session.userId,
+                        kind = "payment",
+                        amount = draft.amount,
+                        methodLabel = methodLabel,
+                        occurredAt = Instant.now().toString(),
+                    )
+                )
+                
+                // ELECTRICITY USAGE CALCULATION & IDEMPOTENCY (Point 4 & 5)
+                val electricityRate = 0.147
+                val kwhUsed = draft.amount / electricityRate
+                service.addUsageMetric(
+                    UsageMetricPeriod(
+                        userId = session.userId,
+                        periodStart = Instant.now().toString(),
+                        periodEnd = Instant.now().toString(),
+                        kwhUsed = kwhUsed,
+                        amountSpent = draft.amount,
+                        unitRate = electricityRate,
+                        idempotencyKey = "usage_$clientReference"
+                    )
+                )
+                
+                safeAddNotification(
                     title = "Payment successful",
                     body = "${amountFormatter(draft.amount)} paid for ${draft.utilityType.label.lowercase()}.",
                     type = "payment",
                 )
-            )
-            queueEmail(
-                userId = session.userId,
-                toEmail = session.email,
-                subject = "Payment successful",
-                body = "We received your ${draft.utilityType.label.lowercase()} payment of ${amountFormatter(draft.amount)}.",
-                metadata = mapOf("type" to "payment", "utility" to draft.utilityType.name),
-            )
-
-            if (draft.useWallet && updatedWallet.balance < 20.0) {
-                service.addNotification(
-                    AppNotification(
-                        userId = session.userId,
-                        title = "Low wallet balance",
-                        body = "Your wallet balance is now ${amountFormatter(updatedWallet.balance)}.",
-                        type = "wallet",
-                    )
-                )
-                queueEmail(
-                    userId = session.userId,
-                    toEmail = session.email,
-                    subject = "Low wallet balance",
-                    body = "Your Voltflow wallet balance is now ${amountFormatter(updatedWallet.balance)}.",
-                    metadata = mapOf("type" to "wallet", "balance" to updatedWallet.balance.toString()),
-                )
+                
+                trackEvent(session.userId, "utility_payment")
+                syncAllData(session.userId)
+                
+                // ONE-TIME UI EVENT (Point 2)
+                _uiEvents.send("Payment processed successfully")
+            }.onSuccess {
+                Log.d("PaymentFlow", "PayUtility success in ${System.currentTimeMillis() - startTime}ms")
+            }.onFailure { error ->
+                Log.e("PaymentFlow", "PayUtility failed", error)
+                _uiState.update { it.copy(dashboard = snapshot) }
+                publishError(error)
             }
-
-            trackEvent(session.userId, "utility_payment")
-            syncAllData(session.userId)
-            _uiState.update { it.copy(transientMessage = "Payment processed successfully") }
         }
-    }
-
-    fun consumeMessage() {
-        _uiState.update { it.copy(transientMessage = null) }
     }
 
     fun consumeError() {
@@ -780,6 +732,7 @@ class VoltflowRepository(
     }
 
     suspend fun markNotificationRead(notificationId: String) {
+        Log.d("NotificationFlow", "MarkRead: $notificationId")
         withCurrentUser { session ->
             service.markNotificationRead(session.userId, notificationId)
             syncAllData(session.userId)
@@ -788,38 +741,30 @@ class VoltflowRepository(
 
     suspend fun updatePushToken(token: String) {
         if (token.isBlank()) return
+        Log.d("AuthFlow", "UpdatePushToken")
         lastKnownPushToken = token
         preferences.setPushToken(token)
         val session = service.currentSession() ?: return
         runCatching {
-            service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, token))
-        }.onFailure { Log.w("VoltflowRepository", "Failed to sync push token", it) }
+            val device = service.buildCurrentDevice(session.accessToken, session.userId, token)
+            service.upsertDevice(device)
+        }.onFailure { Log.w("AuthFlow", "Failed to sync push token", it) }
     }
 
     suspend fun syncCurrentDeviceLocation() {
+        Log.d("AuthFlow", "SyncDeviceLocation")
         val session = service.currentSession() ?: return
         runCatching {
-            service.upsertDevice(service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken))
+            val device = service.buildCurrentDevice(session.accessToken, session.userId, lastKnownPushToken)
+            service.upsertDevice(device)
             syncAllData(session.userId)
-        }.onFailure { Log.w("VoltflowRepository", "Failed to sync device location", it) }
+        }.onFailure { Log.w("AuthFlow", "Failed to sync device location", it) }
     }
 
-    private suspend fun ensureBootstrapRecords(
-        session: SessionSnapshot,
-        firstName: String = session.email.substringBefore('@').replaceFirstChar { it.uppercase() },
-        lastName: String = "",
-    ) {
-        val existingProfile = service.fetchProfile(session.userId)
-        if (existingProfile == null) {
-            service.upsertProfile(
-                UserProfile(
-                    userId = session.userId,
-                    firstName = firstName,
-                    lastName = lastName,
-                    email = session.email,
-                    updatedAt = Instant.now().toString(),
-                )
-            )
+    private suspend fun ensureBootstrapRecords(session: SessionSnapshot) {
+        Log.d("AuthFlow", "EnsureBootstrapRecords for ${session.userId}")
+        if (service.fetchProfile(session.userId) == null) {
+            service.upsertProfile(UserProfile(userId = session.userId, email = session.email, firstName = session.email.substringBefore('@')))
         }
         if (service.fetchWallet(session.userId) == null) {
             service.upsertWallet(Wallet(userId = session.userId, balance = 1000.0, updatedAt = Instant.now().toString()))
@@ -829,33 +774,6 @@ class VoltflowRepository(
         }
         if (service.fetchAutopay(session.userId) == null) {
             service.upsertAutopay(AutopaySettings(userId = session.userId, updatedAt = Instant.now().toString()))
-        }
-        if (service.fetchSecuritySettings(session.userId) == null) {
-            service.upsertSecuritySettings(SecuritySettings(userId = session.userId, updatedAt = Instant.now().toString()))
-        }
-        if (service.fetchBillingAccounts(session.userId).isEmpty()) {
-            service.addBillingAccount(
-                BillingAccount(
-                    userId = session.userId,
-                    providerName = "City Power & Light",
-                    accountMasked = "****-****-4829",
-                    meterNumber = "MTR-2847561",
-                    isDefault = true,
-                    updatedAt = Instant.now().toString(),
-                )
-            )
-        }
-        if (service.fetchBills(session.userId, limit = 1).isEmpty()) {
-            val account = service.fetchBillingAccounts(session.userId).firstOrNull()
-            service.addBill(
-                Bill(
-                    userId = session.userId,
-                    billingAccountId = account?.id,
-                    amountDue = 84.32,
-                    dueDate = "2026-01-15",
-                    status = "open",
-                )
-            )
         }
     }
 
@@ -871,88 +789,122 @@ class VoltflowRepository(
     }
 
     private suspend fun syncAllData(userId: String) {
+        val startTime = System.currentTimeMillis()
+        Log.d("SyncFlow", "SyncAllData started for $userId")
+        
         if (_uiState.value.isOffline) {
             loadCachedSnapshot(userId)
             return
         }
-        val session = service.requireValidSession()
+
+        if (!circuitBreaker.canAttempt()) {
+            _uiState.update { it.copy(isDegraded = true) }
+            loadCachedSnapshot(userId)
+            return
+        }
+
+        _uiState.update { it.copy(isDegraded = false) }
+
+        try {
+            service.requireValidSession()
+        } catch (e: Exception) {
+            circuitBreaker.onFailure()
+            throw e
+        }
         
-        // Tier 1 (Critical): Load immediately for first paint
-        // Run these in parallel for speed
-        val profileDeferred = repositoryScope.async { service.fetchProfile(userId) }
-        val walletDeferred = repositoryScope.async { service.fetchWallet(userId) }
-        val billingAccountsDeferred = repositoryScope.async { service.fetchBillingAccounts(userId) }
-        val billsDeferred = repositoryScope.async { service.fetchBills(userId) }
-        val recentTransactionsDeferred = repositoryScope.async { service.fetchTransactions(userId, limit = 5) }
-        val notificationsDeferred = repositoryScope.async { service.fetchNotifications(userId) }
+        // TIERED STARTUP (Point 6)
+        // Tier 1 (critical): Profile, Wallet, Billing, Summary
+        val profileDeferred = repositoryScope.async(networkDispatcher) { runCatching { service.fetchProfile(userId) }.getOrNull() }
+        val walletDeferred = repositoryScope.async(networkDispatcher) { runCatching { service.fetchWallet(userId) }.getOrNull() }
+        val billingAccountsDeferred = repositoryScope.async(networkDispatcher) { runCatching { service.fetchBillingAccounts(userId) }.getOrNull() ?: emptyList() }
+        val recentTransactionsDeferred = repositoryScope.async(networkDispatcher) { runCatching { service.fetchTransactions(userId, limit = 5) }.getOrNull() ?: emptyList() }
         
-        // Await critical data
         val profile = profileDeferred.await()
         val wallet = walletDeferred.await()
         val billingAccounts = billingAccountsDeferred.await()
-        val bills = billsDeferred.await()
         val recentTransactions = recentTransactionsDeferred.await()
-        val notifications = notificationsDeferred.await()
         
-        // Update UI with critical data (shows dashboard immediately)
-        cacheSnapshot(userId, profile, wallet, recentTransactions, bills, notifications)
+        // EXIT SKELETON AFTER MINIMUM DURATION
+        val elapsed = System.currentTimeMillis() - startTime
+        if (elapsed < 2500) {
+            delay(2500 - elapsed)
+        }
+
         _uiState.update {
             it.copy(
                 isLoading = false,
                 isAuthenticated = true,
-                dashboard = DashboardState(
+                dashboard = it.dashboard.copy(
                     greeting = greetingForCurrentTime(profile?.firstName),
                     profile = profile,
                     wallet = wallet,
                     billingAccounts = billingAccounts,
-                    bills = bills,
                     recentTransactions = recentTransactions,
-                    notifications = notifications,
-                    // Tier 2 data left from previous state until available
-                    usage = it.dashboard.usage,
-                    paymentMethods = it.dashboard.paymentMethods,
-                    transactions = it.dashboard.transactions,
-                    autopay = it.dashboard.autopay,
-                    securitySettings = it.dashboard.securitySettings,
-                    devices = it.dashboard.devices,
-                    currentDeviceId = service.currentDeviceId(),
-                    walletTransactions = it.dashboard.walletTransactions,
-                    usagePeriods = it.dashboard.usagePeriods,
                 ),
             )
         }
-        
-        // Tier 2 (Secondary): Load in background after first paint
-        // These are less critical for immediate UX
+        Log.d("SyncFlow", "Tier 1 complete (UI Rendered) in ${System.currentTimeMillis() - startTime}ms")
+
+        // Tier 2 (background): Notifications, Bills, Usage, Autopay, Methods
         repositoryScope.launch {
-            val usage = service.fetchUsage(userId)
-            val autopay = service.fetchAutopay(userId)
-            val securitySettings = service.fetchSecuritySettings(userId)
-            val paymentMethods = service.fetchPaymentMethods(userId)
-            val transactions = service.fetchTransactions(userId)
-            val devices = service.fetchDevices(userId)
-            val walletTransactions = service.fetchWalletTransactions(userId)
-            val usagePeriods = service.fetchUsageMetrics(userId)
+            val tier2Start = System.currentTimeMillis()
+            val billsDeferred = async(networkDispatcher) { runCatching { service.fetchBills(userId) }.getOrNull() ?: emptyList() }
+            val notificationsDeferred = async(networkDispatcher) { runCatching { service.fetchNotifications(userId) }.getOrNull() ?: emptyList() }
+            val usageDeferred = async(networkDispatcher) { runCatching { service.fetchUsage(userId) }.getOrNull() }
+            val autopayDeferred = async(networkDispatcher) { runCatching { service.fetchAutopay(userId) }.getOrNull() }
+            val paymentMethodsDeferred = async(networkDispatcher) { runCatching { service.fetchPaymentMethods(userId) }.getOrNull() ?: emptyList() }
+
+            val bills = billsDeferred.await()
+            val notifications = notificationsDeferred.await()
+            val usage = usageDeferred.await()
+            val autopay = autopayDeferred.await()
+            val paymentMethods = paymentMethodsDeferred.await()
+
+            cacheSnapshot(userId, profile, wallet, recentTransactions, bills, notifications)
             
-            // Update UI with secondary data
             _uiState.update { currentState ->
                 currentState.copy(
                     dashboard = currentState.dashboard.copy(
+                        bills = bills,
+                        notifications = notifications,
                         usage = usage,
-                        paymentMethods = paymentMethods,
-                        transactions = transactions,
                         autopay = autopay,
-                        securitySettings = securitySettings,
-                        devices = devices,
-                        walletTransactions = walletTransactions,
-                        usagePeriods = usagePeriods,
+                        paymentMethods = paymentMethods,
+                        currentDeviceId = service.currentDeviceId()
                     ),
                 )
             }
+            Log.d("SyncFlow", "Tier 2 complete in ${System.currentTimeMillis() - tier2Start}ms")
+
+            // Tier 3 (lazy): Full History, Devices, Usage Periods (Points)
+            val tier3Start = System.currentTimeMillis()
+            val transactionsDeferred = async(networkDispatcher) { runCatching { service.fetchTransactions(userId) }.getOrNull() ?: emptyList() }
+            val devicesDeferred = async(networkDispatcher) { runCatching { service.fetchDevices(userId) }.getOrNull() ?: emptyList() }
+            val walletTransactionsDeferred = async(networkDispatcher) { runCatching { service.fetchWalletTransactions(userId) }.getOrNull() ?: emptyList() }
+            val usagePeriodsDeferred = async(networkDispatcher) { runCatching { service.fetchUsageMetrics(userId) }.getOrNull() ?: emptyList() }
+
+            val transactions = transactionsDeferred.await()
+            val devices = devicesDeferred.await()
+            val walletTransactions = walletTransactionsDeferred.await()
+            val usagePeriods = usagePeriodsDeferred.await()
+
+            val predicted = predictNextBill(usagePeriods)
+            circuitBreaker.onSuccess()
+
+            _uiState.update { currentState ->
+                currentState.copy(
+                    dashboard = currentState.dashboard.copy(
+                        transactions = transactions,
+                        devices = devices,
+                        walletTransactions = walletTransactions,
+                        usagePeriods = usagePeriods,
+                        predictedBill = predicted,
+                    ),
+                )
+            }
+            Log.d("SyncFlow", "Tier 3 complete in ${System.currentTimeMillis() - tier3Start}ms")
+            Log.d("SyncFlow", "Total sync cycle finished in ${System.currentTimeMillis() - startTime}ms")
         }
-        
-        // Device upsert in background
-        runCatching { service.upsertDevice(service.buildCurrentDevice(session.accessToken, userId, lastKnownPushToken)) }
     }
 
     private suspend fun cacheSnapshot(
@@ -964,77 +916,19 @@ class VoltflowRepository(
         notifications: List<AppNotification>,
     ) {
         profile?.let {
-            dao.upsertProfile(
-                ProfileEntity(
-                    userId = userId,
-                    firstName = it.firstName,
-                    lastName = it.lastName,
-                    email = it.email,
-                    phone = it.phone,
-                    location = it.location,
-                    avatarUrl = it.avatarUrl,
-                    darkMode = it.darkMode,
-                    accountStatus = it.accountStatus,
-                    updatedAt = it.updatedAt,
-                )
-            )
+            dao.upsertProfile(ProfileEntity(userId = userId, firstName = it.firstName, lastName = it.lastName, email = it.email, phone = it.phone, location = it.location, avatarUrl = it.avatarUrl, darkMode = it.darkMode, accountStatus = it.accountStatus, updatedAt = it.updatedAt ?: ""))
         }
         wallet?.let {
-            dao.upsertWallet(
-                WalletEntity(
-                    userId = userId,
-                    balance = it.balance,
-                    updatedAt = it.updatedAt,
-                )
-            )
+            dao.upsertWallet(WalletEntity(userId = userId, balance = it.balance, updatedAt = it.updatedAt ?: ""))
         }
-        dao.upsertTransactions(
-            transactions.map { item ->
-                TransactionEntity(
-                    id = item.id,
-                    userId = userId,
-                    kind = item.kind,
-                    utilityType = item.utilityType,
-                    amount = item.amount,
-                    status = item.status,
-                    meterNumber = item.meterNumber,
-                    paymentMethod = item.paymentMethod,
-                    occurredAt = item.occurredAt,
-                    createdAt = item.createdAt,
-                )
-            }
-        )
-        dao.upsertBills(
-            bills.map { bill ->
-                BillEntity(
-                    id = bill.id,
-                    userId = userId,
-                    amountDue = bill.amountDue,
-                    dueDate = bill.dueDate,
-                    status = bill.status,
-                    createdAt = bill.createdAt,
-                )
-            }
-        )
-        dao.upsertNotifications(
-            notifications.map { notification ->
-                NotificationEntity(
-                    id = notification.id,
-                    userId = userId,
-                    title = notification.title,
-                    body = notification.body,
-                    type = notification.type,
-                    isRead = notification.isRead,
-                    createdAt = notification.createdAt,
-                )
-            }
-        )
+        dao.upsertTransactions(transactions.map { item -> TransactionEntity(id = item.id, userId = userId, kind = item.kind, utilityType = item.utilityType, amount = item.amount, status = item.status, meterNumber = item.meterNumber, paymentMethod = item.paymentMethod, occurredAt = item.occurredAt ?: "", createdAt = item.createdAt ?: "") })
+        dao.upsertBills(bills.map { bill -> BillEntity(id = bill.id, userId = userId, amountDue = bill.amountDue, dueDate = bill.dueDate, status = bill.status, createdAt = bill.createdAt ?: "") })
+        dao.upsertNotifications(notifications.map { notification -> NotificationEntity(id = notification.id, userId = userId, title = notification.title, body = notification.body, type = notification.type, isRead = notification.isRead, createdAt = notification.createdAt ?: "") })
     }
 
     private suspend fun loadCachedSnapshot(userId: String) {
         val cachedProfile = dao.getProfile(userId)
         val cachedWallet = dao.getWallet(userId)
-        val cachedTransactions = dao.getTransactions(userId)
         val cachedRecent = dao.getRecentTransactions(userId, 5)
         val cachedBills = dao.getBills(userId)
         val cachedNotifications = dao.getNotifications(userId)
@@ -1046,7 +940,6 @@ class VoltflowRepository(
                     greeting = greetingForCurrentTime(cachedProfile?.firstName),
                     profile = cachedProfile?.toModel(),
                     wallet = cachedWallet?.toModel(),
-                    transactions = cachedTransactions.map { entity -> entity.toModel() },
                     recentTransactions = cachedRecent.map { entity -> entity.toModel() },
                     bills = cachedBills.map { entity -> entity.toModel() },
                     notifications = cachedNotifications.map { entity -> entity.toModel() },
@@ -1059,10 +952,11 @@ class VoltflowRepository(
         runCatching {
             service.addAnalyticsEvent(
                 AnalyticsEvent(
-                    userId = userId,
-                    eventName = eventName,
-                    metadata = mapOf("source" to "android"),
-                    createdAt = Instant.now().toString(),
+                    userId = userId, 
+                    eventName = eventName, 
+                    metadata = mapOf("source" to "android"), 
+                    idempotencyKey = "evt_${UUID.randomUUID()}", // Point 5
+                    createdAt = Instant.now().toString()
                 )
             )
         }
@@ -1083,27 +977,10 @@ class VoltflowRepository(
         }
     }
 
-    private suspend fun updateSecuritySettings(eventName: String, update: (SecuritySettings) -> SecuritySettings) {
-        withCurrentUser { session ->
-            val current = uiState.value.dashboard.securitySettings ?: SecuritySettings(userId = session.userId)
-            val updated = update(current).copy(updatedAt = Instant.now().toString())
-            service.upsertSecuritySettings(updated)
-            _uiState.update { it.copy(dashboard = it.dashboard.copy(securitySettings = updated)) }
-            service.addNotification(
-                AppNotification(
-                    userId = session.userId,
-                    title = "Security settings updated",
-                    body = "Your account security preferences were updated.",
-                    type = "security",
-                )
-            )
-            trackEvent(session.userId, eventName)
-            syncAllData(session.userId)
-        }
-    }
-
     private fun resetToSignedOutState() {
         _uiState.value = UiState(
+            isInitializing = false,
+            isAuthReady = true,
             isLoading = false,
             isAuthenticated = false,
             activeError = if (service.isConfigured()) null else "Configure Supabase credentials in gradle.properties.",
@@ -1111,7 +988,7 @@ class VoltflowRepository(
     }
 
     private fun publishError(error: Throwable) {
-        Log.e("VoltflowRepository", "operation failed", error)
+        Log.e("SyncFlow", "Operation failed", error)
         _uiState.update {
             it.copy(
                 isLoading = false,
@@ -1125,47 +1002,55 @@ class VoltflowRepository(
     }
 
     private suspend fun startSyncLoop() {
-        var lastRealtimeSyncTime = 0L
-        val minimumRealtimeSyncInterval = 60_000 // 60 seconds
+        var lastSyncTime = 0L
         while (true) {
-            delay(60_000) // Primary polling interval: 60 seconds (reduced from 12s)
+            delay(60_000)
             val session = service.currentSession() ?: continue
             if (!_uiState.value.isOffline) {
-                // Skip full sync if realtime is healthy and recent
                 val now = System.currentTimeMillis()
-                if (now - lastRealtimeSyncTime > minimumRealtimeSyncInterval) {
+                if (now - lastSyncTime > 60_000) {
                     runCatching { syncAllData(session.userId) }
-                    lastRealtimeSyncTime = now
+                    lastSyncTime = now
                 }
             }
         }
     }
 
-    private suspend fun queueEmail(
-        userId: String,
-        toEmail: String?,
-        subject: String,
-        body: String,
-        metadata: Map<String, String> = emptyMap(),
-    ) {
-        if (toEmail.isNullOrBlank()) return
-        service.addEmailOutbox(
-            EmailOutbox(
-                userId = userId,
-                toEmail = toEmail,
-                subject = subject,
-                body = body,
-                metadata = metadata,
-            )
-        )
+    private fun predictNextBill(periods: List<UsageMetricPeriod>): Double {
+        if (periods.size < 2) return periods.lastOrNull()?.amountSpent ?: 0.0
+        val x = periods.indices.map { it.toDouble() }
+        val y = periods.map { it.amountSpent }
+        val n = x.size
+        val sumX = x.sum()
+        val sumY = y.sum()
+        val sumXY = x.zip(y).sumOf { it.first * it.second }
+        val sumXX = x.sumOf { it * it }
+        val slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX)
+        val intercept = (sumY - slope * sumX) / n
+        return (slope * n + intercept).coerceAtLeast(0.0)
     }
 
-    private fun validateNewPin(pin: String): String? {
-        if (pin.length != 6 || pin.any { !it.isDigit() }) {
-            return "PIN must be exactly 6 digits"
+    private class CircuitBreaker(val threshold: Int = 3, val resetTimeoutMs: Long = 60_000L) {
+        private var failures = 0
+        private var lastFailureTime = 0L
+        private var state = State.CLOSED
+        enum class State { CLOSED, OPEN, HALF_OPEN }
+        fun canAttempt(): Boolean {
+            if (state == State.OPEN) {
+                if (System.currentTimeMillis() - lastFailureTime > resetTimeoutMs) {
+                    state = State.HALF_OPEN
+                    return true
+                }
+                return false
+            }
+            return true
         }
-        val weakPins = setOf("000000", "111111", "123456", "654321", "121212", "112233")
-        return if (pin in weakPins) "Choose a stronger PIN" else null
+        fun onSuccess() { failures = 0; state = State.CLOSED }
+        fun onFailure() {
+            failures++
+            lastFailureTime = System.currentTimeMillis()
+            if (failures >= threshold) state = State.OPEN
+        }
     }
 }
 

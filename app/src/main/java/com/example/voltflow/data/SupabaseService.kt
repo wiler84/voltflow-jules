@@ -22,12 +22,18 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.util.Locale
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
@@ -36,9 +42,11 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.jsonPrimitive
-import java.time.Instant
-import java.util.Locale
 import java.util.UUID
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
+import java.security.cert.X509Certificate
+import android.annotation.SuppressLint
 
 private const val PREFS_NAME = "voltflow_supabase"
 private const val SESSION_KEY = "session_snapshot"
@@ -53,15 +61,37 @@ class SupabaseService(context: Context) {
         encodeDefaults = true
     }
 
-    private val client = HttpClient(io.ktor.client.engine.okhttp.OkHttp) {
-        install(ContentNegotiation) { json(json) }
-        install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    Log.d("VoltflowHttp", message)
+    private val client by lazy {
+        HttpClient(io.ktor.client.engine.okhttp.OkHttp) {
+            engine {
+                config {
+                    val trustManager = object : X509TrustManager {
+                        @SuppressLint("TrustAllX509TrustManager")
+                        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        @SuppressLint("TrustAllX509TrustManager")
+                        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                    }
+                    val sslContext = SSLContext.getInstance("SSL")
+                    sslContext.init(null, arrayOf(trustManager), java.security.SecureRandom())
+                    sslSocketFactory(sslContext.socketFactory, trustManager)
+                    hostnameVerifier { _, _ -> true }
                 }
             }
-            level = LogLevel.INFO
+            install(ContentNegotiation) { json(json) }
+            install(io.ktor.client.plugins.HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 30_000
+                socketTimeoutMillis = 30_000
+            }
+            install(Logging) {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        Log.d("VoltflowHttp", message)
+                    }
+                }
+                level = LogLevel.INFO
+            }
         }
     }
 
@@ -120,8 +150,6 @@ class SupabaseService(context: Context) {
         if (!response.status.isSuccess()) {
             throw IllegalStateException(parseError(body, null))
         }
-        // Signup successful. Note: We don't parse tokens here as Supabase might return User only.
-        // The repository should follow up with a signIn if immediate session is expected.
     }
 
     suspend fun signOut() {
@@ -157,7 +185,7 @@ class SupabaseService(context: Context) {
     suspend fun fetchWallet(userId: String): Wallet? = fetchListSafe<Wallet>("wallets", userId).firstOrNull()
     suspend fun fetchUsage(userId: String): UsageMetrics? = fetchListSafe<UsageMetrics>("usage", userId).firstOrNull()
     suspend fun fetchAutopay(userId: String): AutopaySettings? = fetchListSafe<AutopaySettings>("autopay_settings", userId).firstOrNull()
-    suspend fun fetchSecuritySettings(userId: String): SecuritySettings? = fetchListSafe<SecuritySettings>("security_settings", userId).firstOrNull()
+
     suspend fun fetchBillingAccounts(userId: String): List<BillingAccount> =
         fetchListSafe("billing_accounts", userId, order = "is_default.desc,created_at.desc")
 
@@ -198,9 +226,32 @@ class SupabaseService(context: Context) {
         upsert("autopay_settings", settings, conflictColumn = "user_id")
     }
 
-    suspend fun upsertSecuritySettings(settings: SecuritySettings) {
-        upsert("security_settings", settings, conflictColumn = "user_id")
+    suspend fun fetchAggregatedUsage(userId: String, days: Int, isMoney: Boolean): List<UsageChartPoint> = runCatching {
+        val session = requireValidSession()
+        val response = client.post("$supabaseUrl/rest/v1/rpc/get_aggregated_usage") {
+            restHeaders(session.accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject {
+                put("p_user_id", userId)
+                put("p_days", days)
+                put("p_is_money", isMoney)
+            })
+        }
+        ensureSuccess(response.bodyAsText(), response.status.isSuccess())
+        val raw = response.bodyAsText()
+        val list = json.decodeFromString<List<JsonObject>>(raw)
+        list.map { obj ->
+            UsageChartPoint(
+                timestamp = Instant.parse(obj["bucket_start"]!!.jsonPrimitive.content).toEpochMilli(),
+                value = obj["total_value"]!!.jsonPrimitive.content.toDouble()
+            )
+        }
+    }.getOrElse { error ->
+        Log.e("AnalyticsFlow", "RPC get_aggregated_usage failed", error)
+        emptyList()
     }
+
+
 
     suspend fun requestPinResetToken(): PinResetRequestResult {
         val session = requireValidSession()
@@ -248,6 +299,18 @@ class SupabaseService(context: Context) {
                     put("new_pin", newPin)
                 }
             )
+        }
+        ensureSuccess(response.bodyAsText(), response.status.isSuccess())
+    }
+
+    suspend fun updatePassword(newPassword: String) {
+        val session = requireValidSession()
+        val response = client.put("$supabaseUrl/auth/v1/user") {
+            authorized(session.accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject {
+                put("password", newPassword)
+            })
         }
         ensureSuccess(response.bodyAsText(), response.status.isSuccess())
     }
@@ -306,13 +369,11 @@ class SupabaseService(context: Context) {
 
     suspend fun markNotificationRead(userId: String, notificationId: String) {
         val session = requireValidSession()
-        val response = client.post("$supabaseUrl/rest/v1/notifications") {
+        val response = client.patch("$supabaseUrl/rest/v1/notifications") {
             restHeaders(session.accessToken)
             parameter("id", "eq.$notificationId")
             parameter("user_id", "eq.$userId")
-            header("Prefer", "resolution=merge-duplicates,return=representation")
             contentType(ContentType.Application.Json)
-            // Use explicit JSON string to avoid Ktor serialization issues with mixed-type maps
             setBody("""{"is_read":true,"read_at":"${Instant.now()}"}""")
         }
         ensureSuccess(response.bodyAsText(), response.status.isSuccess())
@@ -328,38 +389,55 @@ class SupabaseService(context: Context) {
         ensureSuccess(response.bodyAsText(), response.status.isSuccess())
     }
 
-    fun buildCurrentDevice(sessionToken: String, userId: String, pushToken: String? = null): ConnectedDevice {
+    suspend fun buildCurrentDevice(sessionToken: String, userId: String, pushToken: String? = null): ConnectedDevice {
         val now = Instant.now().toString()
+        val resolvedLocation = withContext(Dispatchers.IO) { bestEffortLocationLabel() }
         return ConnectedDevice(
             userId = userId,
             deviceId = currentDeviceId(),
             deviceName = "${Build.MANUFACTURER} ${Build.MODEL}".trim(),
             platform = "Android ${Build.VERSION.RELEASE}",
             lastActive = now,
-            location = bestEffortLocationLabel(),
+            location = resolvedLocation,
             sessionToken = sessionToken,
             pushToken = pushToken,
         )
     }
 
-    private fun bestEffortLocationLabel(): String? {
+    suspend fun bestEffortLocationLabel(): String? {
         val fineGranted = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val coarseGranted = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (!fineGranted && !coarseGranted) return null
 
-        return runCatching {
-            val manager = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
-            val providers = manager.getProviders(true)
-            val lastKnown = providers
-                .mapNotNull { provider ->
-                    runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val manager = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return@withContext null
+                val providers = manager.getProviders(true)
+                val lastKnown = providers
+                    .mapNotNull { provider ->
+                        runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+                    }
+                    .maxByOrNull { it.time }
+                    ?: return@withContext "Location unavailable"
+                
+                val geocoder = android.location.Geocoder(appContext, Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(lastKnown.latitude, lastKnown.longitude, 5) 
+                val address = addresses?.firstOrNull()
+                
+                if (address != null) {
+                    val city = address.locality ?: address.subAdminArea ?: address.adminArea
+                    val country = address.countryName
+                    
+                    when {
+                        city != null && country != null -> "$city, $country"
+                        else -> country ?: "Unknown location"
+                    }
+                } else {
+                    "Unknown location"
                 }
-                .maxByOrNull { it.time }
-                ?: return "Location unavailable"
-            val lat = String.format(Locale.US, "%.4f", lastKnown.latitude)
-            val lon = String.format(Locale.US, "%.4f", lastKnown.longitude)
-            "Lat $lat, Lon $lon"
-        }.getOrNull()
+            }.getOrElse { "Location unavailable" }
+        }
     }
 
     private suspend inline fun <reified T : Any> fetchListSafe(

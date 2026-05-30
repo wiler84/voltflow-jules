@@ -17,6 +17,7 @@
         android:usesCleartextTraffic="false"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Voltflow">
         <service
             android:name=".notifications.VoltflowFirebaseMessagingService"
@@ -38,8 +39,14 @@
             android:theme="@style/Theme.Voltflow.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="voltflow" android:host="reset" />
             </intent-filter>
         </activity>
     </application>

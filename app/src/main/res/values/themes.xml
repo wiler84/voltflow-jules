@@ -3,7 +3,7 @@
 
     <style name="Theme.Voltflow.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#0B1220</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_icon_voltflow</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_logo</item>
         <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/Theme.Voltflow</item>
     </style>

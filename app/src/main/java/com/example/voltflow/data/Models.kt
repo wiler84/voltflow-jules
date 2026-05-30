@@ -3,6 +3,7 @@ package com.example.voltflow.data
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.text.NumberFormat
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -82,18 +83,6 @@ data class AutopaySettings(
     @SerialName("updated_at") val updatedAt: String? = null,
 )
 
-@Serializable
-data class SecuritySettings(
-    @SerialName("user_id") val userId: String,
-    @SerialName("biometric_enabled") val biometricEnabled: Boolean = false,
-    @SerialName("lock_scope") val lockScope: String = LockScope.TRANSACTIONS_ONLY.value,
-    @SerialName("mfa_enabled") val mfaEnabled: Boolean = false,
-    @SerialName("pin_hash") val pinHash: String? = null,
-    @SerialName("pin_failed_attempts") val pinFailedAttempts: Int = 0,
-    @SerialName("pin_locked_until") val pinLockedUntil: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null,
-)
-
 enum class LockScope(val value: String) {
     TRANSACTIONS_ONLY("transactions_only"),
     TRANSACTIONS_AND_APP("transactions_and_app");
@@ -131,7 +120,7 @@ data class TransactionRecord(
     @SerialName("status") val status: String,
     @SerialName("meter_number") val meterNumber: String? = null,
     @SerialName("payment_method") val paymentMethod: String,
-    @SerialName("payment_method_id") val paymentMethodId: String? = null,
+    @SerialName("payment_method_id") val paymentMethodId: String? = null, // Nullable for wallet
     @SerialName("processor_reference") val processorReference: String? = null,
     @SerialName("description") val description: String,
     @SerialName("client_reference") val clientReference: String,
@@ -183,6 +172,8 @@ data class UsageMetricPeriod(
     @SerialName("period_end") val periodEnd: String,
     @SerialName("kwh_used") val kwhUsed: Double,
     @SerialName("amount_spent") val amountSpent: Double,
+    @SerialName("unit_rate") val unitRate: Double = 0.147,
+    @SerialName("idempotency_key") val idempotencyKey: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 )
 
@@ -221,6 +212,7 @@ data class AnalyticsEvent(
     @SerialName("user_id") val userId: String,
     @SerialName("event_name") val eventName: String,
     @SerialName("metadata") val metadata: Map<String, String> = emptyMap(),
+    @SerialName("idempotency_key") val idempotencyKey: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 )
 
@@ -300,22 +292,9 @@ data class DashboardState(
     val usagePeriods: List<UsageMetricPeriod> = emptyList(),
     val notifications: List<AppNotification> = emptyList(),
     val autopay: AutopaySettings? = null,
-    val securitySettings: SecuritySettings? = null,
     val devices: List<ConnectedDevice> = emptyList(),
     val currentDeviceId: String? = null,
-    val homeStatus: ScreenStatus = ScreenStatus(),
-    val payStatus: ScreenStatus = ScreenStatus(),
-    val historyStatus: ScreenStatus = ScreenStatus(),
-    val walletStatus: ScreenStatus = ScreenStatus(),
-    val autopayStatus: ScreenStatus = ScreenStatus(),
-    val analyticsStatus: ScreenStatus = ScreenStatus(),
-    val notificationsStatus: ScreenStatus = ScreenStatus(),
-)
-
-data class ScreenStatus(
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val isEmpty: Boolean = false,
+    val predictedBill: Double? = null,
 )
 
 data class AuthFormState(
@@ -328,14 +307,16 @@ data class AuthFormState(
 )
 
 data class UiState(
+    val isInitializing: Boolean = true,
+    val isAuthReady: Boolean = false,
     val isLoading: Boolean = true,
     val isAuthenticated: Boolean = false,
     val dashboard: DashboardState = DashboardState(),
     val auth: AuthFormState = AuthFormState(),
     val restoredRoute: String? = null,
     val activeError: String? = null,
-    val transientMessage: String? = null,
     val isOffline: Boolean = false,
+    val isDegraded: Boolean = false,
 )
 
 sealed class PinVerificationResult {
@@ -345,11 +326,27 @@ sealed class PinVerificationResult {
     data class Error(val message: String) : PinVerificationResult()
 }
 
-data class PaymentResult(
-    val transaction: TransactionRecord,
-    val wallet: Wallet,
-    val usage: UsageMetrics,
+@Serializable
+data class UsageChartData(
+    val points: List<UsageChartPoint>,
+    val periodLabel: String,
+    val totalUsage: Double,
+    val percentageChange: Double
 )
+
+@Serializable
+data class UsageChartPoint(
+    val timestamp: Long,
+    val value: Double
+)
+
+enum class UsageRange(val label: String, val days: Int) {
+    SEVEN_DAYS("7 Days", 7),
+    THIRTY_DAYS("30 Days", 30),
+    THREE_MONTHS("3 Months", 90),
+    SIX_MONTHS("6 Months", 180),
+    ONE_YEAR("1 Year", 365)
+}
 
 fun amountFormatter(amount: Double): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.US)
@@ -371,7 +368,37 @@ fun greetingForCurrentTime(firstName: String?): String {
 fun formatTimestamp(iso: String?): String {
     if (iso.isNullOrBlank()) return "Just now"
     return runCatching {
-        val time = LocalDateTime.ofInstant(Instant.parse(iso), ZoneId.systemDefault())
-        time.format(DateTimeFormatter.ofPattern("MMM d, h:mm a"))
-    }.getOrDefault("Just now")
+        val instant = if (iso.contains("T")) {
+            Instant.parse(iso)
+        } else {
+            val date = java.time.LocalDate.parse(iso)
+            date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+        }
+        val now = Instant.now()
+        val duration = Duration.between(instant, now)
+        val seconds = duration.seconds
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
+        
+        when {
+            seconds < 60 -> "Just now"
+            minutes < 60 -> "$minutes mins ago"
+            hours < 24 -> if (hours == 1L) "1 hour ago" else "$hours hours ago"
+            days <= 3 -> when (days) {
+                1L -> "Yesterday"
+                else -> "$days days ago"
+            }
+            days < 365 -> {
+                val time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+                time.format(DateTimeFormatter.ofPattern("MMM d"))
+            }
+            else -> {
+                val time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+                time.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
+            }
+        }
+    }.getOrElse {
+        iso.take(10)
+    }
 }

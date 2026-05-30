@@ -5,23 +5,25 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 
-sealed class Screen(val route: String) {
+sealed class Screen(val route: String, val index: Int = -1) {
     data object Auth : Screen("auth")
-    data object Home : Screen("home")
-    data object Pay : Screen("pay")
+    data object Home : Screen("home", 0)
+    data object Pay : Screen("pay", 1)
     data object Wallet : Screen("wallet")
-    data object History : Screen("history")
+    data object History : Screen("history", 2)
     data object Notifications : Screen("notifications")
     data object Usage : Screen("usage")
     data object AutoPay : Screen("autopay")
     data object PaymentMethods : Screen("payment_methods")
     data object ConnectedDevices : Screen("connected_devices")
-    data object Profile : Screen("profile")
+    data object Profile : Screen("profile", 3)
     data object ProfileOptions : Screen("profile_options")
-    data object SecuritySettings : Screen("security_settings")
+
     data object HelpCenter : Screen("help_center")
     data object Terms : Screen("terms")
     data object Contact : Screen("contact")
+    data object TransactionReceipt : Screen("transaction_receipt")
+    data object ResetPassword : Screen("reset_password")
 
     companion object {
         fun fromRoute(route: String): Screen? = when (route) {
@@ -37,10 +39,12 @@ sealed class Screen(val route: String) {
             ConnectedDevices.route -> ConnectedDevices
             Profile.route -> Profile
             ProfileOptions.route -> ProfileOptions
-            SecuritySettings.route -> SecuritySettings
+
             HelpCenter.route -> HelpCenter
             Terms.route -> Terms
             Contact.route -> Contact
+            TransactionReceipt.route -> TransactionReceipt
+            ResetPassword.route -> ResetPassword
             else -> null
         }
     }
@@ -97,9 +101,11 @@ fun screenFromRoute(route: String?): Screen? = when (route) {
     Screen.ConnectedDevices.route -> Screen.ConnectedDevices
     Screen.Profile.route -> Screen.Profile
     Screen.ProfileOptions.route -> Screen.ProfileOptions
-    Screen.SecuritySettings.route -> Screen.SecuritySettings
+
     Screen.HelpCenter.route -> Screen.HelpCenter
     Screen.Terms.route -> Screen.Terms
     Screen.Contact.route -> Screen.Contact
+    Screen.TransactionReceipt.route -> Screen.TransactionReceipt
+    Screen.ResetPassword.route -> Screen.ResetPassword
     else -> null
 }

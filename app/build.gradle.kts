@@ -77,6 +77,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    // Vico charting library
+    implementation("com.patrykandpatrick.vico:core:1.15.0")
+    implementation("com.patrykandpatrick.vico:compose:1.15.0")
+    implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
@@ -101,7 +105,9 @@ dependencies {
     implementation(libs.supabase.realtime)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.google.play.services.base)
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation("com.google.zxing:core:3.5.3")
     // SLF4J Android binding: suppresses Ktor logging provider warnings
     implementation("org.slf4j:slf4j-android:1.7.36")
     testImplementation(libs.junit)

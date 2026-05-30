@@ -12,6 +12,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -54,6 +59,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.voltflow.MainViewModel
+import com.example.voltflow.ui.QrCodeGenerator
+import com.example.voltflow.ui.QrCodeView
+import com.example.voltflow.data.UsageRange
+import com.example.voltflow.data.UsageChartData
+import com.example.voltflow.data.UsageChartPoint
 import androidx.compose.ui.unit.sp
 import com.example.voltflow.R
 import com.example.voltflow.data.*
@@ -64,7 +75,352 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.text.NumberFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.HazeMaterials
+import com.example.voltflow.bouncyClick
+import com.example.voltflow.errorShake
+import androidx.compose.ui.graphics.drawscope.clipPath
+
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.column.columnChart
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entryModelOf
+import kotlin.math.roundToInt
+
+@Composable
+fun EnergyWaveProgress(
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wave")
+    val waveOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "waveOffset"
+    )
+
+    val color = VoltflowDesign.BlueAccent
+    val trackColor = VoltflowDesign.IconCircleBg
+
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val cornerRadiusPx = 5.dp.toPx()
+        
+        // Draw Track
+        drawRoundRect(
+            color = trackColor,
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadiusPx, cornerRadiusPx)
+        )
+
+        // Clip to rounded corners
+        val path = androidx.compose.ui.graphics.Path().apply {
+            addRoundRect(
+                androidx.compose.ui.geometry.RoundRect(
+                    0f, 0f, width, height,
+                    androidx.compose.ui.geometry.CornerRadius(cornerRadiusPx, cornerRadiusPx)
+                )
+            )
+        }
+
+        clipPath(path) {
+            // Draw progress
+            drawRoundRect(
+                brush = Brush.horizontalGradient(
+                    listOf(color.copy(alpha = 0.7f), color)
+                ),
+                size = androidx.compose.ui.geometry.Size(width * progress, height),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadiusPx, cornerRadiusPx)
+            )
+            
+            // Animated Highlight Overlay
+            val highlightX = width * progress * waveOffset
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    listOf(Color.Transparent, Color.White.copy(alpha = 0.3f), Color.Transparent)
+                ),
+                topLeft = androidx.compose.ui.geometry.Offset(highlightX - 20.dp.toPx(), 0f),
+                size = androidx.compose.ui.geometry.Size(40.dp.toPx(), height)
+            )
+        }
+    }
+}
+
+@Composable
+fun LogoLoadingIndicator() {
+    val infiniteTransition = rememberInfiniteTransition()
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    val blueAccent = VoltflowDesign.BlueAccent
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
+        VoltflowCard(modifier = Modifier.fillMaxSize()) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Canvas(modifier = Modifier.size(120.dp).graphicsLayer { rotationZ = rotation }) {
+                    drawArc(
+                        color = blueAccent,
+                        startAngle = 0f,
+                        sweepAngle = 270f,
+                        useCenter = false,
+                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_icon_voltflow),
+                    contentDescription = "Loading",
+                    modifier = Modifier.size(120.dp).clip(RoundedCornerShape(30.dp))
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ShimmerBox(modifier: Modifier, shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(12.dp)) {
+    Box(
+        modifier = modifier
+            .shimmerLoading(isLoading = true, shape = shape)
+            .background(VoltflowDesign.IconCircleBg.copy(alpha = 0.5f), shape)
+    )
+}
+
+@Composable
+fun HomeSkeletonLayout(innerPadding: PaddingValues) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 56.dp, bottom = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        userScrollEnabled = false
+    ) {
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ShimmerBox(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)))
+                    Spacer(Modifier.width(12.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ShimmerBox(Modifier.width(80.dp).height(14.dp))
+                        ShimmerBox(Modifier.width(120.dp).height(28.dp))
+                    }
+                }
+                ShimmerBox(Modifier.size(48.dp), shape = CircleShape)
+            }
+        }
+        item {
+            VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ShimmerBox(Modifier.size(44.dp), shape = CircleShape)
+                        Spacer(Modifier.width(16.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            ShimmerBox(Modifier.width(120.dp).height(16.dp))
+                            ShimmerBox(Modifier.width(80.dp).height(12.dp))
+                        }
+                    }
+                    Spacer(Modifier.height(28.dp))
+                    ShimmerBox(Modifier.width(100.dp).height(14.dp))
+                    Spacer(Modifier.height(8.dp))
+                    ShimmerBox(Modifier.width(180.dp).height(42.dp), shape = RoundedCornerShape(8.dp))
+                    Spacer(Modifier.height(24.dp))
+                    ShimmerBox(Modifier.fillMaxWidth().height(10.dp), shape = RoundedCornerShape(5.dp))
+                    Spacer(Modifier.height(32.dp))
+                    ShimmerBox(Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp))
+                }
+            }
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                VoltflowCard(modifier = Modifier.weight(1f).height(140.dp)) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        ShimmerBox(Modifier.size(36.dp), shape = CircleShape)
+                        Spacer(Modifier.height(16.dp))
+                        ShimmerBox(Modifier.width(80.dp).height(14.dp))
+                        Spacer(Modifier.height(8.dp))
+                        ShimmerBox(Modifier.width(100.dp).height(20.dp))
+                    }
+                }
+                VoltflowCard(modifier = Modifier.weight(1f).height(140.dp)) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        ShimmerBox(Modifier.size(36.dp), shape = CircleShape)
+                        Spacer(Modifier.height(16.dp))
+                        ShimmerBox(Modifier.width(80.dp).height(14.dp))
+                        Spacer(Modifier.height(8.dp))
+                        ShimmerBox(Modifier.width(100.dp).height(20.dp))
+                    }
+                }
+            }
+        }
+        item {
+            ShimmerBox(Modifier.width(150.dp).height(24.dp))
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                repeat(4) { ShimmerBox(Modifier.width(100.dp).height(56.dp), shape = RoundedCornerShape(16.dp)) }
+            }
+        }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                ShimmerBox(Modifier.width(120.dp).height(24.dp))
+                ShimmerBox(Modifier.width(60.dp).height(14.dp))
+            }
+            Spacer(Modifier.height(16.dp))
+            repeat(3) {
+                ShimmerBox(Modifier.fillMaxWidth().height(88.dp), shape = RoundedCornerShape(24.dp))
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileSkeletonLayout(innerPadding: PaddingValues) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 56.dp, bottom = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        userScrollEnabled = false
+    ) {
+        item {
+            ShimmerBox(Modifier.width(120.dp).height(32.dp))
+        }
+        item {
+            VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+                Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ShimmerBox(Modifier.size(64.dp), shape = CircleShape)
+                    Spacer(Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ShimmerBox(Modifier.width(140.dp).height(20.dp))
+                        ShimmerBox(Modifier.width(180.dp).height(14.dp))
+                        ShimmerBox(Modifier.width(80.dp).height(12.dp))
+                    }
+                }
+            }
+        }
+        item { Spacer(Modifier.height(12.dp)); ShimmerBox(Modifier.width(100.dp).height(14.dp)) }
+        item {
+            VoltflowCard {
+                Column {
+                    repeat(3) {
+                        Row(modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            ShimmerBox(Modifier.size(44.dp), shape = CircleShape)
+                            Spacer(Modifier.width(16.dp))
+                            ShimmerBox(Modifier.width(150.dp).height(16.dp))
+                        }
+                        if (it < 2) VoltflowDivider()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UsageSkeletonLayout(innerPadding: PaddingValues) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).statusBarsPadding()
+    ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            ShimmerBox(Modifier.size(44.dp), shape = CircleShape)
+            Spacer(Modifier.width(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                ShimmerBox(Modifier.width(120.dp).height(22.dp))
+                ShimmerBox(Modifier.width(180.dp).height(14.dp))
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            repeat(3) { ShimmerBox(Modifier.width(80.dp).height(32.dp), shape = RoundedCornerShape(16.dp)) }
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            VoltflowCard(modifier = Modifier.weight(1f).height(100.dp)) { }
+            VoltflowCard(modifier = Modifier.weight(1f).height(100.dp)) { }
+        }
+        Spacer(Modifier.height(32.dp))
+        ShimmerBox(Modifier.width(160.dp).height(24.dp))
+        Spacer(Modifier.height(16.dp))
+        VoltflowCard(modifier = Modifier.fillMaxWidth().height(200.dp)) { }
+    }
+}
+
+@Composable
+fun TimeoutLoadingCard(onReload: () -> Unit) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        VoltflowCard(modifier = Modifier.fillMaxWidth(0.85f)) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(Icons.Default.Timer, contentDescription = null, tint = VoltflowDesign.WarningAmber, modifier = Modifier.size(48.dp))
+                Spacer(Modifier.height(16.dp))
+                Text("Session taking long", color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                Spacer(Modifier.height(8.dp))
+                Text("The connection is unstable or the server is busy. You can wait or try reloading.", color = VoltflowDesign.GrayText, fontSize = 14.sp, textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
+                Spacer(Modifier.height(24.dp))
+                VoltflowButton(text = "Reload", icon = Icons.Default.Refresh) { onReload() }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeLoadingState(onReload: () -> Unit, innerPadding: PaddingValues) {
+    var loadingPhase by remember { mutableIntStateOf(0) } // 0: Logo, 1: Skeleton, 2: Timeout
+
+    LaunchedEffect(Unit) {
+        // Reduced logo duration since unblocked sync starts immediately
+        delay(1000) // 1.0s of logo
+        loadingPhase = 1
+        // Much longer skeleton duration before warning to avoid premature dialog
+        delay(15000) // 15.0s of skeleton (16.0s total)
+        loadingPhase = 2
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedContent(
+            targetState = loadingPhase,
+            transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
+            label = "loading_content"
+        ) { phase ->
+            when (phase) {
+                0 -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        LogoLoadingIndicator()
+                    }
+                }
+                1 -> {
+                    HomeSkeletonLayout(innerPadding)
+                }
+                2 -> {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Keep skeleton in background
+                        HomeSkeletonLayout(innerPadding)
+                        // Dark overlay
+                        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
+                        TimeoutLoadingCard(onReload)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun HomeScreen(
@@ -76,10 +432,15 @@ fun HomeScreen(
     onOpenHistory: () -> Unit,
     onOpenAutopay: () -> Unit,
     onOpenMethods: () -> Unit,
-    onOpenWallet: () -> Unit, // Added onOpenWallet parameter
+    onOpenWallet: () -> Unit,
     onOpenSupport: () -> Unit,
     onRefresh: () -> Unit
 ) {
+    if (state.isLoading) {
+        HomeLoadingState(onReload = onRefresh, innerPadding = innerPadding)
+        return
+    }
+
     val dashboard = state.dashboard
     val textColor = MaterialTheme.colorScheme.onSurface
     val profile = dashboard.profile
@@ -99,15 +460,13 @@ fun HomeScreen(
     val dueLabel = latestBill?.dueDate?.let { "Due ${formatBillDate(it)}" } ?: "No due date"
     var selectedTransaction by remember { mutableStateOf<TransactionRecord?>(null) }
 
-    LaunchedEffect(Unit) {
-        onRefresh()
-    }
+
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
-        contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 16.dp, bottom = 120.dp),
+        contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 56.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
@@ -117,11 +476,12 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_icon_voltflow),
-                        contentDescription = "Voltflow",
-                        modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp))
-                    )
+                    val displayName = profile?.firstName?.take(1)?.uppercase() ?: "A"
+                    Surface(modifier = Modifier.size(34.dp), shape = CircleShape, color = VoltflowDesign.BlueAccent) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.background(VoltflowDesign.PrimaryGradient)) {
+                            Text(displayName, color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                        }
+                    }
                     Spacer(Modifier.width(12.dp))
                     Column {
                         Text(greeting.substringBefore(","), color = VoltflowDesign.GrayText, fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
@@ -132,10 +492,20 @@ fun HomeScreen(
                     onClick = onOpenNotifications,
                     modifier = Modifier.size(48.dp).clip(CircleShape).background(VoltflowDesign.HeaderCircle)
                 ) {
-                    Box {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(Icons.Outlined.Notifications, contentDescription = null, tint = textColor)
                         if (dashboard.notifications.any { !it.isRead }) {
-                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(VoltflowDesign.BlueAccent).align(Alignment.TopEnd).offset(x = (-2).dp, y = 2.dp))
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 10.dp, end = 10.dp)
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White)
+                                    .padding(2.dp)
+                                    .clip(CircleShape)
+                                    .background(VoltflowDesign.BlueAccent)
+                                    .align(Alignment.TopEnd)
+                            )
                         }
                     }
                 }
@@ -143,55 +513,174 @@ fun HomeScreen(
         }
 
         item {
-            VoltflowCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Bolt, contentDescription = null, tint = VoltflowDesign.BlueAccent)
+            var isFlipped by remember { mutableStateOf(false) }
+            val rotation by animateFloatAsState(
+                targetValue = if (isFlipped) 180f else 0f,
+                animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)
+            )
+            val isBack = rotation > 90f
+            val density = androidx.compose.ui.platform.LocalDensity.current.density
+            
+            VoltflowCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        rotationY = rotation
+                        cameraDistance = 12f * density
+                    }
+                    .clickable { isFlipped = !isFlipped }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            if (isBack) {
+                                rotationY = 180f
+                            }
                         }
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text(providerName, color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
-                            Text(accountNumber, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                ) {
+                    if (!isBack) {
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                VoltflowLogo(size = 28.dp)
+                            }
+                            Spacer(Modifier.width(16.dp))
+                                Column {
+                                    Text(providerName, color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                                    Text(accountNumber, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Surface(shape = RoundedCornerShape(8.dp), color = VoltflowDesign.IconCircleBg) {
+                                    Text(meterId, color = VoltflowDesign.GrayText, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontFamily = VoltflowDesign.ManropeFont)
+                                }
+                            }
+                            Spacer(Modifier.height(28.dp))
+                            Text("Current Balance", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text("$", color = textColor, fontSize = 24.sp, modifier = Modifier.padding(bottom = 6.dp), fontFamily = VoltflowDesign.SoraFont)
+                                Text(String.format("%.2f", currentBalance), color = textColor, fontSize = 42.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                                Spacer(Modifier.weight(1f))
+                                Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 8.dp)) {
+                                    Text(dueLabel, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                    dashboard.predictedBill?.let { pred ->
+                                        Spacer(Modifier.height(2.dp))
+                                        Text(
+                                            "Est. next: ${amountFormatter(pred)}",
+                                            color = VoltflowDesign.BlueAccent,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = VoltflowDesign.ManropeFont
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(24.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Usage this cycle", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
+                                Spacer(Modifier.weight(1f))
+                                Text("${(usagePercent * 100).toInt()}%", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont)
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            EnergyWaveProgress(
+                                progress = usagePercent,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(2.dp)
+                                    .padding(horizontal = 4.dp)
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(Color.Transparent, VoltflowDesign.BlueAccent.copy(alpha = 0.4f), Color.Transparent)
+                                        )
+                                    )
+                                    .blur(4.dp)
+                            )
+                            Spacer(Modifier.height(32.dp))
+                            VoltflowButton(text = "Pay Now", icon = Icons.AutoMirrored.Default.ArrowForward) { onOpenPay() }
                         }
-                        Spacer(Modifier.weight(1f))
-                        Surface(shape = RoundedCornerShape(8.dp), color = VoltflowDesign.IconCircleBg) {
-                            Text(meterId, color = VoltflowDesign.GrayText, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontFamily = VoltflowDesign.ManropeFont)
+                    } else {
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Analytics, contentDescription = null, tint = VoltflowDesign.BlueAccent)
+                                }
+                                Spacer(Modifier.width(16.dp))
+                                Column {
+                                    Text("Predictive Usage Insights", color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                                    Text("Smart electricity projection", color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Box(
+                                    modifier = Modifier.size(24.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg).clickable { isFlipped = false },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Close", tint = VoltflowDesign.GrayText, modifier = Modifier.size(14.dp))
+                                }
+                            }
+                            
+                            Spacer(Modifier.height(24.dp))
+                            
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Column {
+                                    Text("Days Remaining", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                    Spacer(Modifier.height(4.dp))
+                                    val daysLeft = if (walletBalance > 0) {
+                                        (walletBalance / 2.45).toInt().coerceIn(1, 45)
+                                    } else {
+                                        12
+                                    }
+                                    val daysColor = if (daysLeft < 5) MaterialTheme.colorScheme.error else VoltflowDesign.BlueAccent
+                                    Text("$daysLeft Days", color = daysColor, fontSize = 28.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                                }
+                                
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("Daily Burn Rate", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                    Spacer(Modifier.height(4.dp))
+                                    Text("$2.45 / day", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                                }
+                            }
+                            
+                            Spacer(Modifier.height(20.dp))
+                            
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                color = VoltflowDesign.IconCircleBg
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("Projected Billing Forecast", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Est. Month-End Total:", color = textColor, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                        Spacer(Modifier.weight(1f))
+                                        val projectedTotal = walletBalance + 42.50
+                                        Text(amountFormatter(projectedTotal), color = VoltflowDesign.BlueAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                                    }
+                                }
+                            }
+                            
+                            Spacer(Modifier.height(24.dp))
+                            VoltflowButton(text = "Back to Balance", icon = Icons.Default.Refresh) { isFlipped = false }
                         }
                     }
-                    Spacer(Modifier.height(28.dp))
-                    Text("Current Balance", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        Text("$", color = textColor, fontSize = 24.sp, modifier = Modifier.padding(bottom = 6.dp), fontFamily = VoltflowDesign.SoraFont)
-                        Text(String.format("%.2f", currentBalance), color = textColor, fontSize = 42.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
-                        Spacer(Modifier.weight(1f))
-                        Text(dueLabel, color = VoltflowDesign.GrayText, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp), fontFamily = VoltflowDesign.ManropeFont)
-                    }
-                    Spacer(Modifier.height(24.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Usage this cycle", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
-                        Spacer(Modifier.weight(1f))
-                        Text("${(usagePercent * 100).toInt()}%", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont)
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    LinearProgressIndicator(
-                        progress = { usagePercent },
-                        modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
-                        color = VoltflowDesign.BlueAccent,
-                        trackColor = VoltflowDesign.IconCircleBg,
-                    )
-                    Spacer(Modifier.height(32.dp))
-                    VoltflowButton(text = "Buy Light", icon = Icons.AutoMirrored.Default.OpenInNew) { onOpenPay() }
                 }
             }
         }
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                VoltflowCard(modifier = Modifier.weight(1f).clickable { onOpenHistory() }) {
+                VoltflowCard(modifier = Modifier.weight(1f).bouncyClick { onOpenHistory() }) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.Receipt, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(18.dp))
@@ -202,7 +691,7 @@ fun HomeScreen(
                         Text(formatTimestamp(lastPayment?.occurredAt ?: "2025-12-28T10:00:00Z").substringBefore(" •"), color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
                     }
                 }
-                VoltflowCard(modifier = Modifier.weight(1f).clickable { onOpenWallet() }) { // Wallet card now navigates
+                VoltflowCard(modifier = Modifier.weight(1f).bouncyClick { onOpenWallet() }) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(VoltflowDesign.WarningAmber.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = VoltflowDesign.WarningAmber, modifier = Modifier.size(18.dp))
@@ -213,6 +702,12 @@ fun HomeScreen(
                         Text("Add funds", color = VoltflowDesign.BlueAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont)
                     }
                 }
+            }
+        }
+
+        dashboard.predictedBill?.let { pred ->
+            item {
+                PredictedBillWidget(predictedAmount = pred)
             }
         }
 
@@ -273,9 +768,10 @@ fun HomeScreen(
 fun WalletScreen(
     state: UiState,
     innerPadding: PaddingValues,
+    hazeState: HazeState,
     onBack: () -> Unit,
     onFund: (Double) -> Unit,
-    onWithdraw: (Double, () -> Unit) -> Unit,
+    onWithdraw: (Double, String, () -> Unit) -> Unit,
 ) {
     val dashboard = state.dashboard
     val textColor = MaterialTheme.colorScheme.onSurface
@@ -292,11 +788,16 @@ fun WalletScreen(
         VoltflowHeader(title = "Wallet", subtitle = "Manage your funds", onBack = onBack)
         Spacer(Modifier.height(24.dp))
         Surface(
-            modifier = Modifier.fillMaxWidth().height(200.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(210.dp)
+                .hazeChild(state = hazeState, style = HazeMaterials.thin(VoltflowDesign.BgTop))
+                .bouncyClick { },
             shape = RoundedCornerShape(32.dp),
-            color = Color.Transparent
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
         ) {
-            Box(modifier = Modifier.background(VoltflowDesign.PrimaryGradient)) {
+            Box(modifier = Modifier.background(brush = VoltflowDesign.WalletGradient, alpha = 0.7f)) {
                 Column(modifier = Modifier.padding(28.dp)) {
                     Text("Available Balance", color = onGradientText.copy(alpha = 0.9f), fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
                     Text(amountFormatter(dashboard.wallet?.balance ?: 0.0), color = onGradientText, fontSize = 48.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
@@ -304,40 +805,39 @@ fun WalletScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Button(
                             onClick = { showFundDialog = true },
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            modifier = Modifier.weight(1f).height(52.dp).bouncyClick { showFundDialog = true },
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = onGradientText.copy(alpha = 0.25f))
                         ) {
                             Text("+ Add Funds", color = onGradientText, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
                         }
-                        OutlinedButton(
+                        Button(
                             onClick = { showWithdrawDialog = true },
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            modifier = Modifier.weight(1f).height(52.dp).bouncyClick { showWithdrawDialog = true },
                             shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.5.dp, onGradientText),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = onGradientText)
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                         ) {
-                            Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp), tint = VoltflowDesign.BlueAccent)
                             Spacer(Modifier.width(8.dp))
-                            Text("Withdraw", fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                            Text("Withdraw", color = VoltflowDesign.BlueAccent, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
                         }
                     }
                 }
             }
         }
         Spacer(Modifier.height(32.dp))
-        Text("Transaction History", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+        Text("Wallet History", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
         Spacer(Modifier.height(16.dp))
         if (dashboard.walletTransactions.isEmpty()) {
             VoltflowCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text("No wallet activity yet", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
                     Spacer(Modifier.height(6.dp))
-                    Text("Deposits, withdrawals, and payments will show here.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
+                    Text("Deposits and withdrawals will show here.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
                 }
             }
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), contentPadding = PaddingValues(bottom = 120.dp)) {
                 items(dashboard.walletTransactions) { transaction ->
                     WalletHistoryRow(transaction)
                 }
@@ -355,9 +855,10 @@ fun WalletScreen(
     if (showWithdrawDialog) {
         WithdrawWalletSheet(
             currentBalance = dashboard.wallet?.balance ?: 0.0,
+            paymentMethods = dashboard.paymentMethods,
             onDismiss = { showWithdrawDialog = false },
-            onConfirm = { amount ->
-                onWithdraw(amount) {
+            onConfirm = { amount, method ->
+                onWithdraw(amount, method) {
                     showWithdrawDialog = false
                 }
             }
@@ -365,8 +866,9 @@ fun WalletScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FundWalletSheet(currentBalance: Double, onDismiss: () -> Unit, onConfirm: (Double) -> Unit) {
+fun FundWalletSheet(currentBalance: Double, onDismiss: () -> Unit, onConfirm: (Double) -> Unit) {
     var amount by remember { mutableStateOf("50") }
     VoltflowModalSheet(title = "Add Funds", onDismiss = onDismiss) {
         Text("Current balance: ${amountFormatter(currentBalance)}", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
@@ -399,43 +901,107 @@ private fun FundWalletSheet(currentBalance: Double, onDismiss: () -> Unit, onCon
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WithdrawWalletSheet(currentBalance: Double, onDismiss: () -> Unit, onConfirm: (Double) -> Unit) {
+fun WithdrawWalletSheet(
+    currentBalance: Double, 
+    paymentMethods: List<PaymentMethod>,
+    onDismiss: () -> Unit, 
+    onConfirm: (Double, String) -> Unit
+) {
     var amount by remember { mutableStateOf("50") }
+    var selectedMethodId by remember { mutableStateOf(paymentMethods.firstOrNull { it.isDefault }?.id ?: paymentMethods.firstOrNull()?.id) }
+    val view = LocalView.current
+    
     VoltflowModalSheet(title = "Withdraw Funds", onDismiss = onDismiss) {
-        Text("Current balance: ${amountFormatter(currentBalance)}", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
-        Spacer(Modifier.height(12.dp))
-        Text("Select an amount to withdraw from your wallet", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            listOf("20", "50", "100", "200").forEach { valAmount ->
-                val selected = amount == valAmount
-                Surface(
-                    modifier = Modifier.weight(1f).height(44.dp).clickable { amount = valAmount },
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (selected) VoltflowDesign.DestructiveRed else VoltflowDesign.CardBg,
-                    border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f) else Color.Transparent)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            "$$valAmount",
-                            color = if (selected) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            fontFamily = VoltflowDesign.SoraFont
-                        )
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Current balance: ${amountFormatter(currentBalance)}", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
+            
+            Text("Amount to withdraw", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                listOf("20", "50", "100", "200").forEach { valAmount ->
+                    val selected = amount == valAmount
+                    Surface(
+                        modifier = Modifier.weight(1f).height(44.dp).clickable { amount = valAmount },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (selected) VoltflowDesign.DestructiveRed else VoltflowDesign.CardBg,
+                        border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f) else Color.Transparent)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                "$$valAmount",
+                                color = if (selected) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                fontFamily = VoltflowDesign.SoraFont
+                            )
+                        }
                     }
                 }
             }
-        }
-        Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = { onConfirm(amount.toDoubleOrNull() ?: 0.0) },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.DestructiveRed)
-        ) {
-            Text("Confirm Withdrawal", color = MaterialTheme.colorScheme.onError, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+
+            Text("Withdraw to", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            
+            if (paymentMethods.isEmpty()) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().clickable { /* Navigate to add method */ },
+                    shape = RoundedCornerShape(12.dp),
+                    color = VoltflowDesign.IconCircleBg
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = VoltflowDesign.WarningAmber, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text("No accounts available. Add one to withdraw.", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    paymentMethods.forEach { method ->
+                        val selected = selectedMethodId == method.id
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().clickable { selectedMethodId = method.id },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (selected) VoltflowDesign.BlueAccent.copy(alpha = 0.08f) else VoltflowDesign.CardBg,
+                            border = BorderStroke(1.dp, if (selected) VoltflowDesign.BlueAccent else Color.Transparent)
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.AccountBalance, contentDescription = null, tint = if (selected) VoltflowDesign.BlueAccent else VoltflowDesign.GrayText)
+                                Spacer(Modifier.width(16.dp))
+                                Column {
+                                    Text(method.cardBrand, fontWeight = FontWeight.Bold, fontSize = 14.sp, fontFamily = VoltflowDesign.SoraFont)
+                                    Text("•••• ${method.cardLast4}", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                if (selected) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = { 
+                    val amt = amount.toDoubleOrNull() ?: 0.0
+                    if (amt > currentBalance) {
+                        performScreenHaptic(view, android.view.HapticFeedbackConstants.REJECT)
+                        return@Button
+                    }
+                    if (selectedMethodId == null) {
+                        performScreenHaptic(view, android.view.HapticFeedbackConstants.REJECT)
+                        return@Button
+                    }
+                    onConfirm(amt, selectedMethodId!!) 
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.DestructiveRed),
+                enabled = selectedMethodId != null
+            ) {
+                Text("Confirm Withdrawal", color = MaterialTheme.colorScheme.onError, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            }
         }
     }
 }
@@ -491,19 +1057,14 @@ private fun TransactionHistoryRow(icon: ImageVector, title: String, amount: Stri
 }
 
 @Composable
-fun UsageScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit) {
-    val periods = state.dashboard.usagePeriods
+fun UsageScreen(viewModel: MainViewModel, onBack: () -> Unit) {
+    val chartState by viewModel.usageChartState.collectAsState()
+    val range = chartState.range
+    val data = chartState.data
+    val isLoading = chartState.isLoading
+    val error = chartState.error
     val textColor = MaterialTheme.colorScheme.onSurface
-    var rangeMonths by remember { mutableStateOf(3) }
-    val filteredPeriods = remember(periods, rangeMonths) {
-        val now = java.time.LocalDate.now()
-        val startDate = now.minusMonths(rangeMonths.toLong())
-        periods.filter { period ->
-            parseLocalDate(period.periodStart)?.isAfter(startDate.minusDays(1)) ?: true
-        }.sortedBy { it.periodStart }
-    }
-    val totalSpent = filteredPeriods.sumOf { it.amountSpent }
-    val totalUnits = filteredPeriods.sumOf { it.kwhUsed }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -511,99 +1072,197 @@ fun UsageScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit)
             .statusBarsPadding()
     ) {
         VoltflowHeader(title = "Analytics", subtitle = "Spending & usage insights", onBack = onBack)
+        
         Spacer(Modifier.height(24.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            FilterChip(
-                selected = rangeMonths == 3,
-                onClick = { rangeMonths = 3 },
-                label = { Text("3 Months") },
-                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = VoltflowDesign.BlueAccent, selectedLabelColor = MaterialTheme.colorScheme.onPrimary)
-            )
-            FilterChip(
-                selected = rangeMonths == 6,
-                onClick = { rangeMonths = 6 },
-                label = { Text("6 Months") }
-            )
-            FilterChip(
-                selected = rangeMonths == 12,
-                onClick = { rangeMonths = 12 },
-                label = { Text("1 Year") }
-            )
-        }
-
-        Spacer(Modifier.height(24.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            VoltflowCard(modifier = Modifier.weight(1f)) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Total Spent", color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
-                    Text(amountFormatter(totalSpent), color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
-                    Text("Across ${filteredPeriods.size} periods", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+        // Toggles
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            val isMoneyMode = chartState.isMoneyMode
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = VoltflowDesign.IconCircleBg,
+            ) {
+                Row(modifier = Modifier.padding(4.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (isMoneyMode) VoltflowDesign.BlueAccent else Color.Transparent,
+                        modifier = Modifier.clickable { if (!isMoneyMode) viewModel.loadChartData(range, true) }
+                    ) {
+                        Text("Money", color = if (isMoneyMode) Color.White else textColor.copy(alpha = 0.7f), modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (!isMoneyMode) VoltflowDesign.BlueAccent else Color.Transparent,
+                        modifier = Modifier.clickable { if (isMoneyMode) viewModel.loadChartData(range, false) }
+                    ) {
+                        Text("Usage", color = if (!isMoneyMode) Color.White else textColor.copy(alpha = 0.7f), modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    }
                 }
             }
-            VoltflowCard(modifier = Modifier.weight(1f)) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Units Used", color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
-                    Text(String.format("%.0f", totalUnits), color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
-                    Text("kWh total", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+        }
+
+        // Point 1: Usage analytics horizontal selector with animated indicator
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+            val ranges = UsageRange.entries
+            val itemWidth = maxWidth / ranges.size
+            val selectedIndex = ranges.indexOf(range).coerceAtLeast(0)
+            
+            val indicatorOffset by animateDpAsState(
+                targetValue = itemWidth * selectedIndex,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                label = "indicator"
+            )
+
+            // Track
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(VoltflowDesign.IconCircleBg)
+            )
+
+            // Animated Indicator
+            Box(
+                modifier = Modifier
+                    .offset(x = indicatorOffset)
+                    .width(itemWidth)
+                    .height(44.dp)
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(VoltflowDesign.BlueAccent)
+
+                    .drawWithContent {
+                        drawContent()
+                    }
+            )
+
+            Row(modifier = Modifier.fillMaxWidth().height(44.dp)) {
+                ranges.forEach { r ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { viewModel.loadChartData(r) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            r.label,
+                            color = if (r == range) Color.White else textColor.copy(alpha = 0.6f),
+                            fontFamily = VoltflowDesign.ManropeFont,
+                            fontWeight = if (r == range) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Summary Card
+        VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(if (chartState.isMoneyMode) "Total Spent" else "Total Usage", color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    val formattedTotal = if (chartState.isMoneyMode) {
+                        amountFormatter(data?.totalUsage ?: 0.0)
+                    } else {
+                        "${data?.totalUsage?.roundToInt() ?: 0} kWh"
+                    }
+                    Text(formattedTotal, color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                    data?.let {
+                        val pct = "${"%+.1f".format(it.percentageChange)}%"
+                        Text(
+                            pct,
+                            color = if (it.percentageChange >= 0) VoltflowDesign.WarningAmber else MaterialTheme.colorScheme.tertiary,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = VoltflowDesign.ManropeFont,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
 
         Spacer(Modifier.height(32.dp))
-        Text("Spending Trend", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+        Text("Usage Trend", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
         Spacer(Modifier.height(16.dp))
-        if (filteredPeriods.isEmpty()) {
-            VoltflowCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("No usage data yet", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
-                    Spacer(Modifier.height(6.dp))
-                    Text("Data appears after your first payment.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
-                }
-            }
-        } else {
-            val chartPeriods = filteredPeriods.takeLast(4)
-            val maxAmount = chartPeriods.maxOfOrNull { it.amountSpent }?.takeIf { it > 0 } ?: 1.0
-            VoltflowCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(modifier = Modifier.height(180.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.Bottom) {
-                        chartPeriods.forEach { period ->
-                            BarChartItem(
-                                label = formatShortMonth(period.periodStart),
-                                heightFactor = (period.amountSpent / maxAmount).toFloat().coerceIn(0.1f, 1f),
-                                value = amountFormatter(period.amountSpent)
+
+        // Point 4: Graph switching animation (morphing data naturally)
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(top = 12.dp)) {
+            
+            AnimatedContent(
+                targetState = chartState.isMoneyMode to isLoading,
+                transitionSpec = {
+                    if (targetState.first != initialState.first) {
+                        // Slide horizontally when switching Money/Usage
+                        val direction = if (targetState.first) 1 else -1
+                        (slideInHorizontally { width -> direction * width } + fadeIn())
+                            .togetherWith(slideOutHorizontally { width -> -direction * width } + fadeOut())
+                    } else {
+                        fadeIn() togetherWith fadeOut()
+                    }
+                },
+                label = "graph_content"
+            ) { (moneyMode, loading) ->
+                if (loading) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = VoltflowDesign.BlueAccent)
+                    }
+                } else if (error != null) {
+                    Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
+                } else if (data != null && data.points.isNotEmpty()) {
+                    val chartEntryModel = entryModelOf(*data.points.map { it.value.toFloat() }.toTypedArray())
+                    
+                    Chart(
+                        chart = columnChart(
+                            columns = listOf(
+                                com.patrykandpatrick.vico.core.component.shape.LineComponent(
+                                    color = if (moneyMode) 0xFF00C853.toInt() else 0xFF0066FF.toInt(),
+                                    thicknessDp = 10f,
+                                    shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40)
+                                )
                             )
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Average monthly", color = VoltflowDesign.GrayText, fontSize = 15.sp, fontFamily = VoltflowDesign.ManropeFont)
-                        Spacer(Modifier.weight(1f))
-                        val avg = if (filteredPeriods.isNotEmpty()) totalSpent / filteredPeriods.size else 0.0
-                        Text(amountFormatter(avg), color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                        ),
+                        model = chartEntryModel,
+                        startAxis = rememberStartAxis(),
+                        bottomAxis = rememberBottomAxis(),
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No data available for this range", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
                     }
                 }
             }
         }
+
         Spacer(Modifier.height(32.dp))
-        Text("Monthly Breakdown", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+        Text("Detailed Periods", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
         Spacer(Modifier.height(16.dp))
+        
         LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(filteredPeriods.sortedByDescending { it.periodStart }) { period ->
+            items(data?.points?.reversed() ?: emptyList()) { point ->
                 VoltflowCard {
                     Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(formatMonthYear(period.periodStart), color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
-                            Text("${String.format("%.0f", period.kwhUsed)} kWh", color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                            val date = Instant.ofEpochMilli(point.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+                            Text(date.format(DateTimeFormatter.ofPattern("MMM d, yyyy")), color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                            val detailVal = if (chartState.isMoneyMode) amountFormatter(point.value) else "${point.value.roundToInt()} kWh"
+                            Text(detailVal, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
                         }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(amountFormatter(period.amountSpent), color = textColor, fontWeight = FontWeight.Black, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
-                            val rate = if (period.kwhUsed > 0) period.amountSpent / period.kwhUsed else 0.0
-                            Text("${String.format("$%.3f", rate)}/kWh", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
-                        }
+                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = VoltflowDesign.GrayText)
                     }
                 }
             }
+            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 }
@@ -743,7 +1402,8 @@ fun PayScreen(
                                 }
                             },
                             textStyle = LocalTextStyle.current.copy(color = textColor, fontSize = 64.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont),
-                            cursorBrush = Brush.verticalGradient(listOf(VoltflowDesign.BlueAccent, VoltflowDesign.BlueAccent))
+                            cursorBrush = Brush.verticalGradient(listOf(VoltflowDesign.BlueAccent, VoltflowDesign.BlueAccent)),
+                            modifier = Modifier.errorShake(errorMessage?.contains("Amount"))
                         )
                     }
                     Spacer(Modifier.height(20.dp))
@@ -761,14 +1421,15 @@ fun PayScreen(
             Spacer(Modifier.height(24.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 listOf("50", "100", "150", "200").forEach { valAmount ->
+                    val selected = amountText == String.format("%.2f", valAmount.toDouble())
                     Surface(
-                        modifier = Modifier.weight(1f).height(52.dp).clickable { amountText = String.format("%.2f", valAmount.toDouble()) },
+                        modifier = Modifier.weight(1f).height(52.dp).bouncyClick { amountText = String.format("%.2f", valAmount.toDouble()) },
                         shape = RoundedCornerShape(16.dp),
-                        color = VoltflowDesign.CardBg,
-                        border = BorderStroke(1.5.dp, if (amountText == String.format("%.2f", valAmount.toDouble())) VoltflowDesign.BlueAccent else Color.Transparent)
+                        color = if (selected) VoltflowDesign.BlueAccent else VoltflowDesign.CardBg,
+                        border = BorderStroke(1.5.dp, if (selected) Color.Transparent else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                     ) {
-                            Box(contentAlignment = Alignment.Center) {
-                            Text("$$valAmount", color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("$$valAmount", color = if (selected) Color.White else textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
                         }
                     }
                 }
@@ -781,6 +1442,7 @@ fun PayScreen(
                 value = meterNumber,
                 onValueChange = { meterNumber = it.filter(Char::isDigit).take(15) },
                 placeholder = "Enter 15-digit meter number",
+                modifier = Modifier.errorShake(errorMessage?.contains("Meter"))
             )
             Spacer(Modifier.height(8.dp))
             Text(
@@ -825,10 +1487,10 @@ fun PayScreen(
             }
             errorMessage?.let {
                 Spacer(Modifier.height(16.dp))
-                Text(it, color = VoltflowDesign.WarningAmber, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                Text(it, color = VoltflowDesign.WarningAmber, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont, modifier = Modifier.errorShake(errorMessage))
             }
             Spacer(Modifier.height(28.dp))
-            VoltflowButton(text = payLabel) {
+            VoltflowButton(text = payLabel, icon = Icons.AutoMirrored.Default.ArrowForward) {
                 val amt = amountText.toDoubleOrNull() ?: 0.0
                 val error = when {
                     amt < 1.0 -> "Enter an amount of at least $1.00."
@@ -838,36 +1500,23 @@ fun PayScreen(
                     else -> null
                 }
                 if (error != null) {
-                    performScreenHaptic(view, android.view.HapticFeedbackConstants.REJECT)
+                    errorMessage = null // Reset to re-trigger effect
                     errorMessage = error
                 } else {
                     errorMessage = null
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onPay(UtilityType.ELECTRICITY, amt, meterNumber.trim(), selectedMethodId, useWallet) {
                         performScreenHaptic(view, android.view.HapticFeedbackConstants.CONFIRM)
-                        showSuccess = true
                     }
                 }
             }
-            Spacer(Modifier.height(132.dp))
-        }
-
-        AnimatedVisibility(
-            visible = showSuccess,
-            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-            exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
-        ) {
-            PaymentSuccessSheet(
-                amount = amountText,
-                meterNumber = meterNumber,
-                methodLabel = selectedMethodLabel,
-                transactionId = latestTransaction?.id ?: latestTransaction?.clientReference ?: "Pending sync",
-                onDismiss = { showSuccess = false },
-            )
+            // Point 15: Increased bottom padding for Pay screen scroll
+            Spacer(Modifier.height(240.dp))
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PaymentSuccessSheet(
     amount: String,
@@ -878,24 +1527,53 @@ private fun PaymentSuccessSheet(
 ) {
     val clipboard = LocalClipboardManager.current
     val formattedAmount = amount.toDoubleOrNull()?.let { amountFormatter(it) } ?: amount
-    VoltflowModalSheet(title = "Payment Successful", onDismiss = onDismiss) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.size(64.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(32.dp))
+    val token = remember(transactionId) { QrCodeGenerator.generatePrepaidToken(transactionId) }
+    
+    VoltflowModalSheet(title = "", onDismiss = onDismiss) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+            Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(42.dp))
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(24.dp))
+            Text("Payment Successful", color = MaterialTheme.colorScheme.onSurface, fontSize = 24.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Spacer(Modifier.height(12.dp))
             Text("Your payment of $formattedAmount has been processed.", color = VoltflowDesign.GrayText, textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
-            Spacer(Modifier.height(20.dp))
-            VoltflowCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SheetDetailRow("Meter Number", meterNumber)
-                    SheetDetailRow("Method", methodLabel)
-                    SheetDetailRow("Transaction ID", transactionId, isCopyable = true) {
-                        clipboard.setText(AnnotatedString(transactionId))
+            Spacer(Modifier.height(32.dp))
+            
+            Text("Prepaid Meter Token", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Spacer(Modifier.height(8.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = VoltflowDesign.IconCircleBg
+            ) {
+                Row(modifier = Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(token, color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { clipboard.setText(AnnotatedString(token)) }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(20.dp))
                     }
                 }
             }
+            
             Spacer(Modifier.height(24.dp))
+            Text("Scan QR Receipt", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Spacer(Modifier.height(12.dp))
+            Surface(
+                modifier = Modifier.size(160.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                border = BorderStroke(4.dp, VoltflowDesign.BlueAccent)
+            ) {
+                Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
+                    QrCodeView(
+                        token = token,
+                        modifier = Modifier.fillMaxSize(),
+                        tintColor = Color.Black
+                    )
+                }
+            }
+            
+            Spacer(Modifier.height(32.dp))
             VoltflowButton(text = "Done") { onDismiss() }
         }
     }
@@ -936,7 +1614,7 @@ private fun PaymentMethodRow(icon: ImageVector, title: String, subtitle: String,
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit) {
     val dashboard = state.dashboard
@@ -1094,48 +1772,67 @@ fun HistoryScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Uni
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun VoltflowModalSheet(
+fun VoltflowModalSheet(
     title: String,
     onDismiss: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = VoltflowDesign.ModalBg,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        dragHandle = null,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = {
+            Box(
+                Modifier
+                    .padding(vertical = 12.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(VoltflowDesign.GrayText.copy(alpha = 0.4f))
+            )
+        },
+        sheetState = sheetState,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    title,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    fontFamily = VoltflowDesign.SoraFont,
-                )
-                Surface(
-                    modifier = Modifier.size(36.dp).clickable { onDismiss() },
-                    color = VoltflowDesign.IconCircleBg,
-                    shape = CircleShape,
+            if (title.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        title,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontFamily = VoltflowDesign.SoraFont,
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clickable { onDismiss() },
+                        color = VoltflowDesign.IconCircleBg,
+                        shape = CircleShape,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
+                Spacer(Modifier.height(4.dp))
             }
-            Spacer(Modifier.height(4.dp))
             content()
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(32.dp))
         }
     }
 }
@@ -1172,6 +1869,7 @@ private fun SheetDetailRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TransactionDetailSheet(transaction: TransactionRecord, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
@@ -1195,11 +1893,51 @@ private fun TransactionDetailSheet(transaction: TransactionRecord, onDismiss: ()
                 transaction.processorReference?.takeIf { it.isNotBlank() }?.let {
                     SheetDetailRow("Processor Ref", it)
                 }
+                
+                if (transaction.kind == TransactionKind.UTILITY_PAYMENT.name || transaction.meterNumber != null) {
+                    val token = remember(transaction.id) { QrCodeGenerator.generatePrepaidToken(transaction.id) }
+                    Spacer(Modifier.height(8.dp))
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                    Spacer(Modifier.height(8.dp))
+                    
+                    Text("Prepaid Meter Token", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = VoltflowDesign.IconCircleBg
+                    ) {
+                        Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(token, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { clipboard.setText(AnnotatedString(token)) }) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                    
+                    Spacer(Modifier.height(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        Surface(
+                            modifier = Modifier.size(140.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color.White,
+                            border = BorderStroke(3.dp, VoltflowDesign.BlueAccent)
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize().padding(10.dp), contentAlignment = Alignment.Center) {
+                                QrCodeView(
+                                    token = token,
+                                    modifier = Modifier.fillMaxSize(),
+                                    tintColor = Color.Black
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WheelDayPickerSheet(
     selectedDay: Int,
@@ -1209,15 +1947,15 @@ private fun WheelDayPickerSheet(
     val view = LocalView.current
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedDay - 1).coerceAtLeast(0))
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
-    var currentDay by remember(selectedDay) { mutableStateOf(selectedDay.coerceIn(1, 31)) }
+    val currentDay by remember {
+        derivedStateOf {
+            (listState.firstVisibleItemIndex + 2).coerceIn(1, 31)
+        }
+    }
 
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .distinctUntilChanged()
-            .collect { index ->
-                currentDay = (index + 1).coerceIn(1, 31)
-                performScreenHaptic(view, android.view.HapticFeedbackConstants.CLOCK_TICK)
-            }
+    LaunchedEffect(currentDay) {
+        // iPhone Alarm style: Light, crisp haptic on every tick
+        view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
     }
 
     VoltflowModalSheet(title = "Select payment day", onDismiss = onDismiss) {
@@ -1341,10 +2079,13 @@ private fun HistoryRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit, onMarkRead: (String) -> Unit) {
     val notifications = state.dashboard.notifications
     val textColor = MaterialTheme.colorScheme.onSurface
+    var selectedNotification by remember { mutableStateOf<AppNotification?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1371,9 +2112,132 @@ fun NotificationsScreen(state: UiState, innerPadding: PaddingValues, onBack: () 
                         unread = !notification.isRead,
                         type = notification.type,
                         onClick = {
+                            selectedNotification = notification
                             if (!notification.isRead) onMarkRead(notification.id)
                         }
                     )
+                }
+            }
+        }
+    }
+
+    selectedNotification?.let { notification ->
+        NotificationDetailSheet(
+            notification = notification,
+            dashboard = state.dashboard,
+            onDismiss = { selectedNotification = null }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotificationDetailSheet(
+    notification: AppNotification,
+    dashboard: DashboardState,
+    onDismiss: () -> Unit
+) {
+    val clipboard = LocalClipboardManager.current
+    val view = LocalView.current
+    
+    // Find linked transaction if this is a payment notification
+    // We try to match by date/amount or a more robust link in a real app
+    val linkedTransaction = remember(notification) {
+        if (notification.type == "payment") {
+            dashboard.transactions.firstOrNull { 
+                notification.body.contains(amountFormatter(it.amount)) || 
+                it.occurredAt?.take(10) == notification.createdAt?.take(10)
+            }
+        } else null
+    }
+
+    VoltflowModalSheet(title = notification.title, onDismiss = onDismiss) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                notification.body,
+                color = VoltflowDesign.GrayText,
+                fontSize = 15.sp,
+                fontFamily = VoltflowDesign.ManropeFont,
+                lineHeight = 22.sp
+            )
+            
+            if (linkedTransaction != null) {
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                
+                VoltflowCard {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        SheetDetailRow("Amount", amountFormatter(linkedTransaction.amount))
+                        SheetDetailRow("Status", linkedTransaction.status.replaceFirstChar { it.uppercase() })
+                        SheetDetailRow("Date", formatTimestamp(linkedTransaction.occurredAt))
+                        SheetDetailRow("Method", linkedTransaction.paymentMethod)
+                        linkedTransaction.meterNumber?.takeIf { it.isNotBlank() }?.let {
+                            SheetDetailRow("Meter Number", it)
+                        }
+                        SheetDetailRow(
+                            "Transaction ID",
+                            linkedTransaction.id,
+                            isCopyable = true,
+                        ) {
+                            clipboard.setText(AnnotatedString(linkedTransaction.id))
+                        }
+                        
+                        val token = remember(linkedTransaction.id) { QrCodeGenerator.generatePrepaidToken(linkedTransaction.id) }
+                        
+                        Spacer(Modifier.height(8.dp))
+                        Text("Prepaid Meter Token", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = VoltflowDesign.IconCircleBg
+                        ) {
+                            Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(token, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont, modifier = Modifier.weight(1f))
+                                IconButton(onClick = { 
+                                    performScreenHaptic(view, android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+                                    clipboard.setText(AnnotatedString(token)) 
+                                }) {
+                                    Icon(Icons.Default.ContentCopy, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                        
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            Surface(
+                                modifier = Modifier.size(140.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.White,
+                                border = BorderStroke(3.dp, VoltflowDesign.BlueAccent)
+                            ) {
+                                Box(modifier = Modifier.fillMaxSize().padding(10.dp), contentAlignment = Alignment.Center) {
+                                    QrCodeView(token = token, modifier = Modifier.fillMaxSize(), tintColor = Color.Black)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(8.dp))
+                VoltflowButton(text = "Download Receipt", icon = Icons.Default.Download) {
+                    // Logic to export/download would go here
+                    performScreenHaptic(view, android.view.HapticFeedbackConstants.CONFIRM)
+                }
+            } else {
+                // For security or other alerts, show device info if available
+                val linkedDevice = remember(notification) {
+                    if (notification.type == "security") {
+                        dashboard.devices.firstOrNull { notification.body.contains(it.deviceName, ignoreCase = true) }
+                    } else null
+                }
+                
+                if (linkedDevice != null) {
+                    VoltflowCard {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SheetDetailRow("Device", linkedDevice.deviceName)
+                            SheetDetailRow("Platform", linkedDevice.platform)
+                            SheetDetailRow("Location", linkedDevice.location ?: "Unknown")
+                            SheetDetailRow("Last Active", formatTimestamp(linkedDevice.lastActive))
+                        }
+                    }
                 }
             }
         }
@@ -1396,12 +2260,23 @@ private fun NotificationRow(
         "alert" -> VoltflowDesign.BlueAccent
         "autopay" -> MaterialTheme.colorScheme.primary
         "wallet" -> VoltflowDesign.WarningAmber
+        "security" -> VoltflowDesign.DestructiveRed
         else -> textColor
+    }
+    val icon = when (type) {
+        "payment" -> Icons.Default.ReceiptLong
+        "wallet" -> Icons.Default.AccountBalanceWallet
+        "autopay" -> Icons.Default.Autorenew
+        "security" -> Icons.Default.Security
+        "system" -> Icons.Default.Info
+        "bill" -> Icons.Default.Description
+        "login" -> Icons.Default.Person
+        else -> Icons.Default.Notifications
     }
     VoltflowCard(modifier = Modifier.clickable { onClick() }) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.Top) {
             Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg), contentAlignment = Alignment.Center) {
-                VoltflowLogoMark(tint = iconColor)
+                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
             }
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -1422,6 +2297,7 @@ private fun NotificationRow(
 
 // Sub-screens (Security, Payment Methods, etc.) match the simplified spec from images
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoPayScreen(
     state: UiState,
@@ -1436,12 +2312,19 @@ fun AutoPayScreen(
     var enabled by remember { mutableStateOf(settings.enabled) }
     var paymentDay by remember { mutableStateOf(settings.paymentDay) }
     var amountText by remember { mutableStateOf(if (settings.amountLimit > 0) settings.amountLimit.toString() else "0") }
-    var meterNumber by remember { mutableStateOf(billingAccount?.meterNumber ?: "") }
+    var meterNumber by remember { mutableStateOf(settings.meterNumber ?: billingAccount?.meterNumber ?: "") }
     var selectedMethodId by remember { mutableStateOf(settings.paymentMethodId ?: methods.firstOrNull()?.id) }
     var showDayPicker by remember { mutableStateOf(false) }
     var showMethodPicker by remember { mutableStateOf(false) }
+    var confirmStep by remember { mutableStateOf(0) }
+    var showOffStateDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).statusBarsPadding()) {
+    val selectedMethodLabel = methods.firstOrNull { it.id == selectedMethodId }
+        ?.let { "${it.cardBrand} •••• ${it.cardLast4}" }
+        ?: "Select method"
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).statusBarsPadding().verticalScroll(rememberScrollState())) {
         VoltflowHeader(title = "Auto-Pay", subtitle = "Automatic bill payments", onBack = onBack)
         Spacer(Modifier.height(24.dp))
         VoltflowCard(modifier = Modifier.fillMaxWidth()) {
@@ -1475,49 +2358,81 @@ fun AutoPayScreen(
                     onClick = { showDayPicker = true }
                 )
                 VoltflowDivider()
-                val methodLabel = methods.firstOrNull { it.id == selectedMethodId }
-                    ?.let { "${it.cardBrand} •••• ${it.cardLast4}" }
-                    ?: "Select method"
+                val isMethodError = errorMessage?.contains("payment method") == true
                 VoltflowRow(
                     icon = Icons.Default.CreditCard,
                     title = "Payment Method",
-                    subtitle = methodLabel,
+                    subtitle = selectedMethodLabel,
                     actionText = "Change",
-                    onAction = { showMethodPicker = true }
+                    onAction = { showMethodPicker = true },
+                    modifier = Modifier
+                        .errorShake(isMethodError)
+                        .background(if (isMethodError) VoltflowDesign.DestructiveBg else Color.Transparent)
                 )
                 VoltflowDivider()
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                     Text("Amount Limit", color = textColor, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
                     Spacer(Modifier.height(8.dp))
+                    val isAmountError = errorMessage?.contains("Amount") == true
                     VoltflowInput(
                         value = amountText,
                         onValueChange = { amountText = it.filter { ch -> ch.isDigit() || ch == '.' } },
                         placeholder = "0.00",
+                        isError = isAmountError,
+                        modifier = Modifier.errorShake(isAmountError)
                     )
                 }
                 VoltflowDivider()
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                     Text("Meter Number", color = textColor, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
                     Spacer(Modifier.height(8.dp))
+                    val isMeterError = errorMessage?.contains("Meter") == true
                     VoltflowInput(
                         value = meterNumber,
-                        onValueChange = { meterNumber = it },
-                        placeholder = "Enter meter number",
+                        onValueChange = { meterNumber = it.filter(Char::isDigit).take(15) },
+                        placeholder = "Enter 15-digit meter number",
+                        isError = isMeterError,
+                        modifier = Modifier.errorShake(isMeterError)
                     )
                 }
             }
         }
+        
+        errorMessage?.let {
+            Spacer(Modifier.height(16.dp))
+            Text(it, color = VoltflowDesign.WarningAmber, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont, modifier = Modifier.errorShake(errorMessage))
+        }
+
         Spacer(Modifier.height(20.dp))
         VoltflowButton(text = "Save Auto-Pay Settings") {
             val amountValue = amountText.toDoubleOrNull() ?: 0.0
-            onSetAutopay(
-                enabled,
-                selectedMethodId,
-                amountValue,
-                "monthly",
-                paymentDay ?: 15,
-                meterNumber.ifBlank { null }
-            )
+            if (enabled) {
+                val error = when {
+                    amountValue <= 0 -> "Amount limit must be greater than zero."
+                    meterNumber.length != 15 -> "Meter number must be exactly 15 digits."
+                    selectedMethodId == null -> "Please select a payment method."
+                    else -> null
+                }
+                
+                if (error != null) {
+                    errorMessage = null
+                    errorMessage = error
+                } else {
+                    errorMessage = null
+                    confirmStep = 1
+                }
+            } else {
+                errorMessage = null
+                onSetAutopay(
+                    false,
+                    selectedMethodId,
+                    amountValue,
+                    "monthly",
+                    paymentDay ?: 15,
+                    meterNumber.ifBlank { null }
+                )
+                showOffStateDialog = true
+            }
         }
         Spacer(Modifier.height(32.dp))
         Text("How It Works", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
@@ -1526,6 +2441,114 @@ fun AutoPayScreen(
             HowItWorksItem("1", "Your bill is generated at the start of each month")
             HowItWorksItem("2", "Payment is automatically processed on your selected day")
             HowItWorksItem("3", "You'll receive a confirmation notification")
+        }
+        Spacer(Modifier.height(120.dp))
+    }
+
+    if (confirmStep == 1) {
+        ConfirmAutopaySheet(
+            enabled = enabled,
+            meterNumber = meterNumber,
+            methodLabel = selectedMethodLabel,
+            amountLimit = amountText.toDoubleOrNull() ?: 0.0,
+            onDismiss = { confirmStep = 0 },
+            onConfirm = {
+                val amountValue = amountText.toDoubleOrNull() ?: 0.0
+                onSetAutopay(
+                    enabled,
+                    selectedMethodId,
+                    amountValue,
+                    "monthly",
+                    paymentDay ?: 15,
+                    meterNumber.ifBlank { null }
+                )
+                confirmStep = 2
+            }
+        )
+    }
+
+    if (confirmStep == 2) {
+        VoltflowModalSheet(title = "Auto-Pay Active!", onDismiss = { confirmStep = 0 }) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(VoltflowDesign.BlueAccent.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(36.dp))
+                }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "Auto-Pay successfully enabled!",
+                    color = textColor,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = VoltflowDesign.SoraFont
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Voltflow will now automatically process payments for your meter number $meterNumber on day $paymentDay of each month.",
+                    color = VoltflowDesign.GrayText,
+                    textAlign = TextAlign.Center,
+                    fontFamily = VoltflowDesign.ManropeFont,
+                    fontSize = 14.sp
+                )
+                Spacer(Modifier.height(24.dp))
+                VoltflowButton(text = "Awesome") {
+                    confirmStep = 0
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+
+    if (showOffStateDialog) {
+        VoltflowModalSheet(title = "Auto-Pay is Off", onDismiss = { showOffStateDialog = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+                Text(
+                    "Details added but Auto-Pay is off, turn it on?",
+                    color = VoltflowDesign.GrayText,
+                    fontFamily = VoltflowDesign.ManropeFont,
+                    fontSize = 15.sp
+                )
+                Spacer(Modifier.height(24.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { showOffStateDialog = false },
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.IconCircleBg)
+                    ) {
+                        Text("Keep Off", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                    }
+                    Button(
+                        onClick = {
+                            val amountValue = amountText.toDoubleOrNull() ?: 0.0
+                            onSetAutopay(
+                                true,
+                                selectedMethodId,
+                                amountValue,
+                                "monthly",
+                                paymentDay ?: 15,
+                                meterNumber.ifBlank { null }
+                            )
+                            enabled = true
+                            showOffStateDialog = false
+                        },
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.BlueAccent)
+                    ) {
+                        Text("Turn On", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
         }
     }
 
@@ -1573,6 +2596,36 @@ private fun HowItWorksItem(number: String, text: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConfirmAutopaySheet(
+    enabled: Boolean,
+    meterNumber: String,
+    methodLabel: String,
+    amountLimit: Double,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    VoltflowModalSheet(title = "Confirm Auto-Pay Settings", onDismiss = onDismiss) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+            Text(if (enabled) "You are about to enable automatic monthly payments." else "You are about to disable automatic payments.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont, fontSize = 14.sp)
+            Spacer(Modifier.height(24.dp))
+            if (enabled) {
+                VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        ReceiptRow("Meter Number", meterNumber)
+                        ReceiptRow("Payment Method", methodLabel)
+                        ReceiptRow("Monthly Limit", amountFormatter(amountLimit))
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+            VoltflowButton(text = "Confirm", icon = Icons.Default.Check) { onConfirm() }
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
 @Composable
 fun ProfileOptionsScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit, onSaveProfile: (String, String, String) -> Unit) {
     var firstName by remember { mutableStateOf(state.dashboard.profile?.firstName ?: "") }
@@ -1594,316 +2647,19 @@ fun ProfileOptionsScreen(state: UiState, innerPadding: PaddingValues, onBack: ()
     }
 }
 
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SecuritySettingsScreen(
-    state: UiState,
-    innerPadding: PaddingValues,
-    onBack: () -> Unit,
-    onToggleBiometric: (Boolean) -> Unit,
-    onToggleMfa: (Boolean) -> Unit,
-    onSetPin: (String) -> Unit,
-    onSetLockScope: (LockScope) -> Unit,
-    onRequestPinReset: suspend () -> PinResetRequestResult,
-    onVerifyPinReset: suspend (String) -> Boolean,
-    onCompletePinReset: suspend (String, String) -> Boolean
-) {
-    val security = state.dashboard.securitySettings ?: SecuritySettings(userId = state.dashboard.profile?.userId ?: "")
-    val textColor = MaterialTheme.colorScheme.onSurface
-    var showPinDialog by remember { mutableStateOf(false) }
-    var showPinResetDialog by remember { mutableStateOf(false) }
-    var showLockScopePicker by remember { mutableStateOf(false) }
-    val currentScope = LockScope.fromRaw(security.lockScope)
-    val context = LocalContext.current
-    val biometricManager = BiometricManager.from(context)
-    val biometricStatus = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-    val biometricAvailable = biometricStatus == BiometricManager.BIOMETRIC_SUCCESS
-    val showBiometricRow = biometricAvailable || security.biometricEnabled
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).statusBarsPadding()) {
-        VoltflowHeader(title = "Security Settings", subtitle = "Manage transaction approval and app unlock", onBack = onBack)
-        Spacer(Modifier.height(24.dp))
-        VoltflowCard {
-            Column {
-                if (showBiometricRow) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp)
-                            .padding(horizontal = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = textColor, modifier = Modifier.size(22.dp))
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Biometric approval", color = textColor, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
-                            Text(
-                                when {
-                                    !biometricAvailable && security.biometricEnabled -> "Unavailable on this device"
-                                    security.biometricEnabled -> "Enabled for transaction approval"
-                                    else -> "Use biometrics for faster transaction approval"
-                                },
-                                color = VoltflowDesign.GrayText,
-                                fontSize = 13.sp,
-                                fontFamily = VoltflowDesign.ManropeFont
-                            )
-                        }
-                        Switch(
-                            checked = security.biometricEnabled,
-                            onCheckedChange = onToggleBiometric,
-                            colors = SwitchDefaults.colors(checkedTrackColor = VoltflowDesign.BlueAccent),
-                            enabled = biometricAvailable,
-                        )
-                    }
-                    VoltflowDivider()
-                }
-                VoltflowRow(icon = Icons.Outlined.Security, title = "Multi-factor authentication", subtitle = "Required for cross-device payment methods", actionText = if (security.mfaEnabled) "Disable" else "Enable", onAction = { onToggleMfa(!security.mfaEnabled) })
-                VoltflowDivider()
-                VoltflowRow(
-                    icon = Icons.Outlined.MoreHoriz,
-                    title = "App PIN",
-                    subtitle = if (!security.pinHash.isNullOrBlank()) "PIN set" else "No PIN set",
-                    actionText = if (!security.pinHash.isNullOrBlank()) "Reset PIN" else "Set PIN",
-                    onAction = {
-                        if (!security.pinHash.isNullOrBlank()) showPinResetDialog = true else showPinDialog = true
-                    }
-                )
-                VoltflowDivider()
-                VoltflowRow(
-                    icon = Icons.Outlined.Lock,
-                    title = "App lock scope",
-                    subtitle = if (currentScope == LockScope.TRANSACTIONS_AND_APP) {
-                        "Unlock the app on every resume"
-                    } else {
-                        "Transactions only"
-                    },
-                    actionText = "Change",
-                    onAction = { showLockScopePicker = true }
-                )
-            }
-        }
-        Spacer(Modifier.height(32.dp))
-        SectionLabel("ACCOUNT")
-        VoltflowCard {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text("User ID: ${VoltflowAppUtils.shortId(state.dashboard.profile?.userId)}", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
-            }
-        }
-    }
-
-    if (showLockScopePicker) {
-        VoltflowModalSheet(title = "Choose lock scope", onDismiss = { showLockScopePicker = false }) {
-            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                listOf(LockScope.TRANSACTIONS_ONLY, LockScope.TRANSACTIONS_AND_APP).forEach { scopeOption ->
-                    val title = if (scopeOption == LockScope.TRANSACTIONS_ONLY) {
-                        "Transactions only"
-                    } else {
-                        "Transactions + app lock"
-                    }
-                    val description = if (scopeOption == LockScope.TRANSACTIONS_ONLY) {
-                        "Only money-moving actions ask for approval."
-                    } else {
-                        "Android unlocks the app on every resume, and transactions still require approval."
-                    }
-                    ListItem(
-                        headlineContent = { Text(title, color = textColor, fontFamily = VoltflowDesign.SoraFont) },
-                        supportingContent = { Text(description, color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont) },
-                        trailingContent = {
-                            if (currentScope == scopeOption) {
-                                Icon(Icons.Default.Check, contentDescription = null, tint = VoltflowDesign.BlueAccent)
-                            }
-                        },
-                        modifier = Modifier.clickable {
-                            onSetLockScope(scopeOption)
-                            showLockScopePicker = false
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                    )
-                }
-            }
-        }
-    }
-
-    if (showPinDialog) {
-        PinSetupDialog(
-            onDismiss = { showPinDialog = false },
-            onConfirm = { pin ->
-                onSetPin(pin)
-                showPinDialog = false
-            }
-        )
-    }
-
-    if (showPinResetDialog) {
-        PinResetDialog(
-            onDismiss = { showPinResetDialog = false },
-            onRequestCode = { onRequestPinReset() },
-            onVerifyCode = { token -> onVerifyPinReset(token) },
-            onCompleteReset = { token, pin -> onCompletePinReset(token, pin) }
-        )
-    }
-}
-
-@Composable
-private fun PinSetupDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var pin by remember { mutableStateOf("") }
-    var confirm by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    VoltflowModalSheet(title = "Set App PIN", onDismiss = onDismiss) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            VoltflowInput(
-                value = pin,
-                onValueChange = { pin = it.filter { ch -> ch.isDigit() }.take(6) },
-                placeholder = "Enter PIN",
-            )
-            VoltflowInput(
-                value = confirm,
-                onValueChange = { confirm = it.filter { ch -> ch.isDigit() }.take(6) },
-                placeholder = "Confirm PIN",
-            )
-            error?.let { Text(it, color = VoltflowDesign.WarningAmber, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont) }
-            Spacer(Modifier.height(8.dp))
-            VoltflowButton(text = "Save PIN") {
-                val weakPins = setOf("000000", "111111", "123456", "654321", "121212", "112233")
-                when {
-                    pin.length != 6 || confirm.length != 6 || pin != confirm -> {
-                        error = "PINs must be exactly 6 digits and must match."
-                        return@VoltflowButton
-                    }
-                    pin in weakPins -> {
-                        error = "Choose a stronger PIN."
-                        return@VoltflowButton
-                    }
-                }
-                error = null
-                onConfirm(pin)
-            }
-        }
-    }
-}
-
-@Composable
-private fun PinResetDialog(
-    onDismiss: () -> Unit,
-    onRequestCode: suspend () -> PinResetRequestResult,
-    onVerifyCode: suspend (String) -> Boolean,
-    onCompleteReset: suspend (String, String) -> Boolean
-) {
-    var token by remember { mutableStateOf("") }
-    var pin by remember { mutableStateOf("") }
-    var confirm by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var info by remember { mutableStateOf("We’ll email a 6-character reset code. Sending a new code invalidates older ones.") }
-    var cooldown by remember { mutableStateOf(0) }
-    var resendsUsed by remember { mutableStateOf(0) }
-    var maxResends by remember { mutableStateOf(4) }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        val result = onRequestCode()
-        cooldown = result.cooldownSeconds
-        resendsUsed = result.resendCount
-        maxResends = result.maxResends
-        info = "Code sent. Check your email."
-    }
-
-    LaunchedEffect(cooldown) {
-        if (cooldown > 0) {
-            delay(1_000)
-            cooldown -= 1
-        }
-    }
-
-    VoltflowModalSheet(title = "Reset App PIN", onDismiss = onDismiss) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(info, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
-            VoltflowInput(
-                value = token,
-                onValueChange = { token = it.trim().uppercase().take(6) },
-                placeholder = "Enter 6-character code"
-            )
-            VoltflowInput(
-                value = pin,
-                onValueChange = { pin = it.filter(Char::isDigit).take(6) },
-                placeholder = "New PIN"
-            )
-            VoltflowInput(
-                value = confirm,
-                onValueChange = { confirm = it.filter(Char::isDigit).take(6) },
-                placeholder = "Confirm PIN"
-            )
-            error?.let { Text(it, color = VoltflowDesign.DestructiveRed, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont) }
-            VoltflowButton(text = "Reset PIN") {
-                scope.launch {
-                    if (token.length != 6) {
-                        error = "Enter a valid 6-character token."
-                        return@launch
-                    }
-                    if (pin.length != 6 || confirm.length != 6 || pin != confirm) {
-                        error = "PINs must be exactly 6 digits and match."
-                        return@launch
-                    }
-                    val validToken = onVerifyCode(token)
-                    if (!validToken) {
-                        error = "Invalid or expired code."
-                        return@launch
-                    }
-                    val done = onCompleteReset(token, pin)
-                    if (done) onDismiss() else error = "Unable to reset PIN right now."
-                }
-            }
-            TextButton(
-                onClick = {
-                    if (cooldown > 0 || resendsUsed >= maxResends) return@TextButton
-                    scope.launch {
-                        val result = onRequestCode()
-                        cooldown = result.cooldownSeconds
-                        resendsUsed = result.resendCount
-                        maxResends = result.maxResends
-                        info = "A new code was sent. Older codes were invalidated."
-                        error = null
-                    }
-                },
-                enabled = cooldown == 0 && resendsUsed < maxResends,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                val label = when {
-                    resendsUsed >= maxResends -> "Resend limit reached"
-                    cooldown > 0 -> "Resend in ${cooldown}s"
-                    else -> "Resend code"
-                }
-                Text(label, color = VoltflowDesign.BlueAccent, fontFamily = VoltflowDesign.ManropeFont)
-            }
-        }
-    }
-}
-
-@Composable
-fun PaymentMethodsScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit, onEnableMfa: (Boolean) -> Unit, onAdd: (String, String, Int, Int) -> Unit) {
+fun PaymentMethodsScreen(state: UiState, innerPadding: PaddingValues, onBack: () -> Unit, onAdd: (String, String, Int, Int) -> Unit) {
     val methods = state.dashboard.paymentMethods
-    val mfaEnabled = state.dashboard.securitySettings?.mfaEnabled == true
+    val mfaEnabled = false
     val textColor = MaterialTheme.colorScheme.onSurface
     var showAddDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).statusBarsPadding()) {
         VoltflowHeader(title = "Payment Methods", subtitle = "Manage your payment options", onBack = onBack)
         Spacer(Modifier.height(24.dp))
         if (methods.isEmpty()) {
-            VoltflowCard {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text("Enable MFA for cross-device cards", color = textColor, fontWeight = FontWeight.Bold, fontSize = 17.sp, fontFamily = VoltflowDesign.SoraFont)
-                    Spacer(Modifier.height(8.dp))
-                    Text("Cards on other devices are hidden until MFA is enabled.", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = { onEnableMfa(!mfaEnabled) },
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.BlueAccent)
-                    ) {
-                        Text(if (mfaEnabled) "Disable MFA" else "Enable MFA", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
-                    }
-                }
-            }
-            Spacer(Modifier.height(16.dp))
             VoltflowCard {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text("No payment methods", color = textColor, fontWeight = FontWeight.Bold, fontSize = 17.sp, fontFamily = VoltflowDesign.SoraFont)
@@ -1933,25 +2689,44 @@ fun PaymentMethodsScreen(state: UiState, innerPadding: PaddingValues, onBack: ()
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddPaymentMethodDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, Int, Int) -> Unit
 ) {
-    var brand by remember { mutableStateOf("Visa") }
+    var brand by remember { mutableStateOf("Unknown") }
     var number by remember { mutableStateOf("") }
     var expiryMonth by remember { mutableStateOf("") }
     var expiryYear by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val view = LocalView.current
 
-    VoltflowModalSheet(title = "Add Payment Method", onDismiss = onDismiss) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            VoltflowInput(value = brand, onValueChange = { brand = it }, placeholder = "Card brand")
+    val detectedBrand = remember(number) { MockPaymentProcessor.detectBrand(number) }
+    brand = detectedBrand
+
+     VoltflowModalSheet(title = "Add Payment Method", onDismiss = onDismiss) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            // Live Card Preview
+            CardPreview(
+                brand = brand,
+                number = number,
+                expiryMonth = expiryMonth,
+                expiryYear = expiryYear
+            )
+
+            Spacer(Modifier.height(8.dp))
+
             VoltflowInput(
                 value = number,
-                onValueChange = { number = it.filter(Char::isDigit).take(19) },
-                placeholder = "Card number"
+                onValueChange = { newValue ->
+                    val digits = newValue.filter { it.isDigit() }.take(16)
+                    number = digits
+                },
+                placeholder = "Card Number",
+                leadingIcon = Icons.Default.CreditCard
             )
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(modifier = Modifier.weight(1f)) {
                     VoltflowInput(
@@ -1968,30 +2743,122 @@ private fun AddPaymentMethodDialog(
                     )
                 }
             }
-            error?.let { Text(it, color = VoltflowDesign.WarningAmber, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont) }
+
+            // Trust Section
+            SupportedCardsRow(activeBrand = brand)
+
+            error?.let { Text(it, color = VoltflowDesign.DestructiveRed, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont) }
+            
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = {
                     val month = expiryMonth.toIntOrNull() ?: 0
                     val year = expiryYear.toIntOrNull() ?: 0
-                    val valid = brand.isNotBlank() && number.length >= 12 && month in 1..12 && year >= 2026
-                    if (!valid) {
-                        error = "Enter valid card details."
+                    val luhnValid = MockPaymentProcessor.validateLuhn(number)
+                    val detailsValid = number.length >= 12 && month in 1..12 && year >= 2025
+                    
+                    if (!luhnValid || !detailsValid) {
+                        performScreenHaptic(view, android.view.HapticFeedbackConstants.REJECT)
+                        error = if (!luhnValid) "Invalid card number checksum." else "Enter valid card details."
                         return@Button
                     }
                     error = null
-                    onConfirm(brand.trim(), number.trim(), month, year)
+                    onConfirm(brand, number.trim(), month, year)
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.BlueAccent)
             ) {
-                Text("Save", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                Text("Save Securely", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
             }
         }
     }
 }
 
+@Composable
+private fun CardPreview(brand: String, number: String, expiryMonth: String, expiryYear: String) {
+    val textColor = Color.White
+    val cardBg = VoltflowDesign.PrimaryGradient
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+    ) {
+        Box(modifier = Modifier.background(cardBg)) {
+            // Chip and Brand
+            Row(modifier = Modifier.padding(24.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                Box(modifier = Modifier.size(44.dp, 32.dp).background(Color(0xFFE0E0E0), RoundedCornerShape(4.dp)))
+                Text(
+                    brand.uppercase(),
+                    color = textColor,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 20.sp,
+                    fontFamily = VoltflowDesign.SoraFont,
+                    letterSpacing = 2.sp
+                )
+            }
+
+            // Number
+            val displayNum = remember(number) {
+                val digits = number.padEnd(16, '•')
+                digits.chunked(4).joinToString("  ")
+            }
+            Text(
+                displayNum,
+                modifier = Modifier.align(Alignment.Center).padding(top = 20.dp),
+                color = textColor,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = VoltflowDesign.SoraFont,
+                letterSpacing = 2.sp
+            )
+
+            // Expiry
+            Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
+                Text("VALID THRU", color = textColor.copy(alpha = 0.6f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "${expiryMonth.padStart(2, '•')}/${expiryYear.takeLast(2).padStart(2, '•')}",
+                    color = textColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = VoltflowDesign.SoraFont
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupportedCardsRow(activeBrand: String) {
+    val brands = listOf("Visa", "Mastercard", "American Express", "Discover")
+    Column {
+        Text("SUPPORTED CARDS", color = VoltflowDesign.GrayText, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            brands.forEach { brand ->
+                val isActive = brand == activeBrand
+                val icon = when(brand) {
+                    "Visa" -> Icons.Default.CreditCard
+                    "Mastercard" -> Icons.Default.CreditCard
+                    "American Express" -> Icons.Default.CreditCard
+                    else -> Icons.Default.CreditCard
+                }
+                Icon(
+                    icon,
+                    contentDescription = brand,
+                    tint = if (isActive) VoltflowDesign.BlueAccent else VoltflowDesign.GrayText.copy(alpha = 0.4f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedDevicesScreen(
     state: UiState,
@@ -2083,15 +2950,39 @@ fun ConnectedDevicesScreen(
                             Icon(Icons.Default.Smartphone, contentDescription = null, tint = textColor)
                             Spacer(Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(device.deviceName, color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
-                                // Removed device.platform as per prompt (Android version info)
-                                Text(device.location ?: "Unknown location", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                Text(device.deviceName, color = textColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                                Text(device.platform, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = VoltflowDesign.GrayText, modifier = Modifier.size(12.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(device.location ?: "Unknown location", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                }
                                 Text("Last active: ${formatTimestamp(device.lastActive)}", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
                             }
                             if (device.deviceId != state.dashboard.currentDeviceId) {
-                                Text("Revoke", color = VoltflowDesign.DestructiveRed, modifier = Modifier.clickable { onRevoke(device.deviceId) }, fontFamily = VoltflowDesign.ManropeFont)
+                                Button(
+                                    onClick = { onRevoke(device.deviceId) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.DestructiveBg, contentColor = VoltflowDesign.DestructiveRed),
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(32.dp)
+                                ) {
+                                    Text("Logout", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
                             } else {
-                                Text("Current Device", color = VoltflowDesign.BlueAccent, fontSize = 12.sp, fontFamily = VoltflowDesign.ManropeFont)
+                                Surface(
+                                    color = VoltflowDesign.BlueAccent.copy(alpha = 0.1f),
+                                    contentColor = VoltflowDesign.BlueAccent,
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        "Current",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = VoltflowDesign.ManropeFont
+                                    )
+                                }
                             }
                         }
                     }
@@ -2124,29 +3015,63 @@ fun HelpCenterScreen(innerPadding: PaddingValues, onBack: () -> Unit) {
         )
     }
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    var expandedTopic by remember { mutableStateOf<String?>(null) }
 
+    // Point 15: Scrollable and only one can be expanded at a time
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).statusBarsPadding()) {
         VoltflowHeader(title = "Help Center", subtitle = "Find answers fast", onBack = onBack)
-        Spacer(Modifier.height(24.dp))
-        VoltflowInput(value = query, onValueChange = { query = it }, placeholder = "Search help topics", leadingIcon = Icons.Outlined.Search)
-        Spacer(Modifier.height(24.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Box(modifier = Modifier.weight(1f)) { VoltflowSupportButton(icon = Icons.Outlined.Chat, text = "Chat Support") { uriHandler.openUri("mailto:support@voltflow.app") } }
-            Box(modifier = Modifier.weight(1f)) { VoltflowSupportButton(icon = Icons.Outlined.Call, text = "Call Support") { uriHandler.openUri("tel:+14155550111") } }
-        }
-        Spacer(Modifier.height(32.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 24.dp, bottom = 120.dp)
+        ) {
+            item {
+                VoltflowInput(value = query, onValueChange = { query = it }, placeholder = "Search help topics", leadingIcon = Icons.Outlined.Search)
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Box(modifier = Modifier.weight(1f)) { VoltflowSupportButton(icon = Icons.Outlined.Chat, text = "Chat Support") { uriHandler.openUri("mailto:support@voltflow.app") } }
+                    Box(modifier = Modifier.weight(1f)) { VoltflowSupportButton(icon = Icons.Outlined.Call, text = "Call Support") { uriHandler.openUri("tel:+14155550111") } }
+                }
+            }
+            item {
+                Text("Common Topics", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            }
+            
             if (results.isEmpty()) {
-                VoltflowCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text("No results for \"$query\"", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
-                        Spacer(Modifier.height(6.dp))
-                        Text("Try a different search term.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
+                item {
+                    VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Text("No results for \"$query\"", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Try a different search term.", color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont)
+                        }
                     }
                 }
             } else {
-                results.forEach { topic ->
-                    ExpandableHelpTopic(topic)
+                items(results) { topic ->
+                    val isExpanded = expandedTopic == topic.title
+                    VoltflowCard(modifier = Modifier.fillMaxWidth().clickable { 
+                        expandedTopic = if (isExpanded) null else topic.title 
+                    }) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(topic.title, color = textColor, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), fontFamily = VoltflowDesign.SoraFont)
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = VoltflowDesign.GrayText
+                                )
+                            }
+                            AnimatedVisibility(visible = isExpanded) {
+                                Column {
+                                    Spacer(Modifier.height(12.dp))
+                                    Text(topic.body, color = VoltflowDesign.GrayText, fontFamily = VoltflowDesign.ManropeFont, lineHeight = 22.sp)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2281,6 +3206,227 @@ private fun parseLocalDate(value: String?): java.time.LocalDate? {
     return runCatching { java.time.LocalDate.parse(value) }.getOrNull()
 }
 
+private fun performScreenHaptic(view: android.view.View, constant: Int) {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        view.performHapticFeedback(constant)
+    } else {
+        view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+    }
+}
+
+@Composable
+private fun ReceiptRow(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = VoltflowDesign.GrayText, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 15.sp, fontFamily = VoltflowDesign.ManropeFont)
+    }
+}
+
+@Composable
+fun TransactionReceiptScreen(
+    state: UiState,
+    innerPadding: PaddingValues,
+    onDone: () -> Unit
+) {
+    val transaction = state.dashboard.transactions.firstOrNull() ?: return
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    val token = remember(transaction.id) { QrCodeGenerator.generatePrepaidToken(transaction.id) }
+    val textColor = MaterialTheme.colorScheme.onSurface
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp)
+            .statusBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp)
+        ) {
+            item {
+                Box(
+                    modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(42.dp))
+                }
+                Spacer(Modifier.height(24.dp))
+                Text("Payment Successful", color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont, textAlign = TextAlign.Center)
+                Text("Your receipt is ready", color = VoltflowDesign.GrayText, fontSize = 16.sp, fontFamily = VoltflowDesign.ManropeFont, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(40.dp))
+            }
+            
+            item {
+                VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        ReceiptRow("Amount", amountFormatter(transaction.amount))
+                        ReceiptRow("Status", transaction.status.replaceFirstChar { it.uppercase() })
+                        ReceiptRow("Method", transaction.paymentMethod)
+                        ReceiptRow("Date", formatTimestamp(transaction.occurredAt))
+                        transaction.meterNumber?.let { ReceiptRow("Meter", it) }
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+            
+            item {
+                Text("Prepaid Meter Token", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = VoltflowDesign.IconCircleBg
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(token, color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { clipboard.setText(AnnotatedString(token)) }) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+                Spacer(Modifier.height(32.dp))
+            }
+            
+            item {
+                Surface(
+                    modifier = Modifier.size(180.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color.White,
+                    border = BorderStroke(4.dp, VoltflowDesign.BlueAccent)
+                ) {
+                    Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                        QrCodeView(token = token, modifier = Modifier.fillMaxSize(), tintColor = Color.Black)
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+        
+        Box(modifier = Modifier.padding(bottom = 32.dp)) {
+            VoltflowButton(text = "Done") { onDone() }
+        }
+    }
+}
+
+@Composable
+fun ResetPasswordScreen(
+    onReset: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val textColor = MaterialTheme.colorScheme.onSurface
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp)
+            .statusBarsPadding()
+            .imePadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        VoltflowLogo(size = 64.dp)
+        Spacer(Modifier.height(24.dp))
+        Text("Reset Password", color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+        Text("Create a new secure password", color = VoltflowDesign.GrayText, fontSize = 16.sp, textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
+        
+        Spacer(Modifier.height(40.dp))
+        
+        VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                VoltflowInput(
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = "New Password",
+                    isPassword = true,
+                    showPassword = showPassword,
+                    onTogglePassword = { showPassword = !showPassword }
+                )
+                VoltflowInput(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    placeholder = "Confirm Password",
+                    isPassword = true,
+                    showPassword = showPassword,
+                    onTogglePassword = { showPassword = !showPassword }
+                )
+                
+                error?.let { Text(it, color = VoltflowDesign.WarningAmber, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont) }
+                
+                Spacer(Modifier.height(8.dp))
+                
+                VoltflowButton(text = "Update Password") {
+                    if (password.length < 8) {
+                        error = "Password must be at least 8 characters."
+                        return@VoltflowButton
+                    }
+                    if (password != confirmPassword) {
+                        error = "Passwords do not match."
+                        return@VoltflowButton
+                    }
+                    error = null
+                    onReset(password)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(24.dp))
+        Text(
+            "Back to Login",
+            color = VoltflowDesign.BlueAccent,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable { onBack() },
+            fontFamily = VoltflowDesign.ManropeFont
+        )
+    }
+}
+
+@Composable
+fun PredictedBillWidget(predictedAmount: Double) {
+    val textColor = MaterialTheme.colorScheme.onSurface
+    VoltflowCard(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.background(Brush.linearGradient(listOf(VoltflowDesign.BlueAccent.copy(alpha = 0.08f), Color.Transparent)))) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(VoltflowDesign.BlueAccent.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Insights, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text("Billing Forecast", color = textColor, fontSize = 17.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                        Text("Based on recent usage trends", color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Column {
+                        Text("Estimated Next Bill", color = VoltflowDesign.GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                        Spacer(Modifier.height(4.dp))
+                        Text(amountFormatter(predictedAmount), color = textColor, fontSize = 32.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Surface(
+                        color = VoltflowDesign.BlueAccent.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.TrendingUp, contentDescription = null, tint = VoltflowDesign.BlueAccent, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Predictive", color = VoltflowDesign.BlueAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 private fun formatBillDate(value: String): String {
     val date = parseLocalDate(value) ?: return value
     val formatter = java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy")
@@ -2299,6 +3445,269 @@ private fun formatShortMonth(value: String): String {
     return date.format(formatter)
 }
 
-private fun performScreenHaptic(view: android.view.View, constant: Int) {
-    view.performHapticFeedback(constant)
+@Composable
+fun ProfileHubScreen(
+    state: UiState,
+    innerPadding: PaddingValues,
+    darkModeEnabled: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit,
+    onOpenProfileOptions: () -> Unit,
+    onOpenPaymentMethods: () -> Unit,
+    onOpenAutopay: () -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenConnectedDevices: () -> Unit,
+    onOpenHelpCenter: () -> Unit,
+    onOpenTerms: () -> Unit,
+    onOpenContact: () -> Unit,
+    onSignOut: () -> Unit,
+) {
+    if (state.isLoading) {
+        ProfileSkeletonLayout(innerPadding)
+        return
+    }
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    val profile = state.dashboard.profile
+    val displayName = profile?.firstName?.let { "$it ${profile.lastName}" }?.trim()?.ifBlank { "Alex Johnson" } ?: "Alex Johnson"
+    val textColor = MaterialTheme.colorScheme.onSurface
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+        // Point 5: Top margin 56dp+ for Profile header
+        contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 80.dp, bottom = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text("Profile", color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+        }
+        item {
+            VoltflowCard(modifier = Modifier.fillMaxWidth().clickable { onOpenProfileOptions() }) {
+                Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(modifier = Modifier.size(64.dp), shape = CircleShape, color = VoltflowDesign.BlueAccent) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.background(VoltflowDesign.PrimaryGradient)) {
+                            Text(displayName.take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontSize = 24.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+                        }
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(displayName, color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                        Text(profile?.email ?: "alex.johnson@email.com", color = VoltflowDesign.GrayText, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
+                        Text(profile?.accountStatus ?: "Pending", color = VoltflowDesign.WarningAmber, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont)
+                    }
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = VoltflowDesign.GrayText)
+                }
+            }
+        }
+
+        item { SectionLabel("BILLING") }
+        item {
+            VoltflowCard {
+                Column {
+                    VoltflowRow(icon = Icons.Outlined.Autorenew, title = "Auto-Pay", hasChevron = true, onClick = onOpenAutopay)
+                    VoltflowDivider()
+                    VoltflowRow(icon = Icons.Outlined.CreditCard, title = "Payment Methods", hasChevron = true, onClick = onOpenPaymentMethods)
+                }
+            }
+        }
+
+        item { SectionLabel("ACCOUNT") }
+        item {
+            VoltflowCard {
+                Column {
+                    VoltflowRow(icon = Icons.Outlined.Devices, title = "Connected Devices", hasChevron = true, onClick = onOpenConnectedDevices)
+                    VoltflowDivider()
+                    VoltflowRow(icon = Icons.Outlined.Notifications, title = "Notifications", hasChevron = true, onClick = onOpenNotifications)
+                }
+            }
+        }
+
+        item { SectionLabel("SUPPORT") }
+        item {
+            VoltflowCard {
+                Column {
+                    VoltflowRow(icon = Icons.Outlined.HelpOutline, title = "Help Center", hasChevron = true, onClick = onOpenHelpCenter)
+                    VoltflowDivider()
+                    VoltflowRow(icon = Icons.Outlined.Description, title = "Terms of Service", hasChevron = true, onClick = onOpenTerms)
+                    VoltflowDivider()
+                    VoltflowRow(icon = Icons.Outlined.Email, title = "Contact Us", hasChevron = true, onClick = onOpenContact)
+                }
+            }
+        }
+
+        item {
+            VoltflowCard {
+                Row(modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = textColor)
+                    Spacer(Modifier.width(16.dp))
+                    Text("Dark Mode", color = textColor, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium, fontFamily = VoltflowDesign.ManropeFont)
+                    Switch(checked = darkModeEnabled, onCheckedChange = onToggleDarkMode, colors = SwitchDefaults.colors(checkedTrackColor = VoltflowDesign.BlueAccent))
+                }
+            }
+        }
+
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth().height(64.dp).clip(RoundedCornerShape(20.dp)).clickable { showLogoutDialog = true },
+                color = VoltflowDesign.DestructiveBg
+            ) {
+                Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, tint = VoltflowDesign.DestructiveRed)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Log Out", color = VoltflowDesign.DestructiveRed, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = VoltflowDesign.SoraFont)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("VoltFlow v1.0.0", color = VoltflowDesign.GrayText, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontFamily = VoltflowDesign.ManropeFont)
+        }
+    }
+
+    if (showLogoutDialog) {
+        VoltflowLogoutDialog(onDismiss = { showLogoutDialog = false }, onConfirm = { onSignOut(); showLogoutDialog = false })
+    }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VoltflowLogoutDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    val textColor = MaterialTheme.colorScheme.onSurface
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = VoltflowDesign.ModalBg,
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = VoltflowDesign.GrayText,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onDismiss() },
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(VoltflowDesign.DestructiveBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("!", color = VoltflowDesign.DestructiveRed, fontSize = 36.sp, fontWeight = FontWeight.Black, fontFamily = VoltflowDesign.SoraFont)
+            }
+            Text("Logout", color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+            Text(
+                "Are you sure you want to logout?",
+                color = VoltflowDesign.GrayText,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                fontFamily = VoltflowDesign.ManropeFont
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.IconCircleBg)
+                ) {
+                    Text("Cancel", color = textColor, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                }
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier.weight(1f).height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VoltflowDesign.DestructiveRed)
+                ) {
+                    Text("Logout", color = MaterialTheme.colorScheme.onError, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.SoraFont)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+fun SectionLabel(text: String) {
+    Text(
+        text,
+        color = VoltflowDesign.GrayText,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Black,
+        letterSpacing = 1.5.sp,
+        fontFamily = VoltflowDesign.SoraFont,
+        modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+fun VoltflowCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Surface(
+        modifier = modifier,
+        color = VoltflowDesign.CardBg,
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun VoltflowRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    description: String? = null,
+    onClick: (() -> Unit)? = null,
+    hasChevron: Boolean = false,
+    hasToggle: Boolean = false,
+    checked: Boolean = false,
+    onToggle: (Boolean) -> Unit = {},
+    actionText: String? = null,
+    onAction: () -> Unit = {},
+    isDropdown: Boolean = false
+) {
+    val textColor = MaterialTheme.colorScheme.onSurface
+    Row(
+        modifier = Modifier.fillMaxWidth().height(72.dp).clickable(enabled = onClick != null) { onClick?.invoke() }.padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(VoltflowDesign.IconCircleBg), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = textColor, modifier = Modifier.size(22.dp))
+        }
+        Spacer(Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = textColor, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = VoltflowDesign.SoraFont)
+            if (subtitle != null) Text(subtitle, color = VoltflowDesign.GrayText, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont)
+        }
+        if (hasToggle) {
+            Switch(checked = checked, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = VoltflowDesign.BlueAccent))
+        } else if (actionText != null) {
+            Text(actionText, color = VoltflowDesign.BlueAccent, fontWeight = FontWeight.Bold, fontFamily = VoltflowDesign.ManropeFont, modifier = Modifier.clickable { onAction() })
+        } else if (isDropdown) {
+            Surface(shape = RoundedCornerShape(12.dp), color = VoltflowDesign.IconCircleBg) {
+                Row(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(description ?: "", color = textColor, fontSize = 14.sp, fontFamily = VoltflowDesign.ManropeFont)
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = VoltflowDesign.GrayText, modifier = Modifier.size(18.dp))
+                }
+            }
+        } else if (hasChevron || onClick != null) {
+            Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = VoltflowDesign.GrayText)
+        }
+    }
+}
+
+@Composable
+fun VoltflowDivider() {
+    HorizontalDivider(color = VoltflowDesign.DividerColor, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
+}
+

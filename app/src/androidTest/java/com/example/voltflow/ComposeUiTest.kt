@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ComposeUiTest {
     @get:Rule
-    val composeTestRule: createAndroidComposeRule = createAndroidComposeRule<MainActivity>()
+    val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun homeShowsGreeting() {
