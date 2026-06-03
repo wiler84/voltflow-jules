@@ -6,6 +6,7 @@ import java.text.NumberFormat
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Currency
@@ -341,11 +342,11 @@ data class UsageChartPoint(
 )
 
 enum class UsageRange(val label: String, val days: Int) {
-    SEVEN_DAYS("7 Days", 7),
-    THIRTY_DAYS("30 Days", 30),
-    THREE_MONTHS("3 Months", 90),
-    SIX_MONTHS("6 Months", 180),
-    ONE_YEAR("1 Year", 365)
+    SEVEN_DAYS("Past 7D", 7),
+    THIRTY_DAYS("Past 30D", 30),
+    THREE_MONTHS("Past 3M", 90),
+    SIX_MONTHS("Past 6M", 180),
+    ONE_YEAR("Past 1Y", 365)
 }
 
 fun amountFormatter(amount: Double): String {
@@ -369,7 +370,7 @@ fun formatTimestamp(iso: String?): String {
     if (iso.isNullOrBlank()) return "Just now"
     return runCatching {
         val instant = if (iso.contains("T")) {
-            Instant.parse(iso)
+            try { Instant.parse(iso) } catch (e: Exception) { OffsetDateTime.parse(iso).toInstant() }
         } else {
             val date = java.time.LocalDate.parse(iso)
             date.atStartOfDay(ZoneId.systemDefault()).toInstant()

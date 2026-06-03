@@ -92,17 +92,9 @@ class MainViewModel(
         viewModelScope.launch { repository.withdrawWallet(amount, paymentMethodId) }
     }
 
-    fun payUtility(utilityType: UtilityType, amount: Double, meterNumber: String, paymentMethodId: String?, useWallet: Boolean = true) {
+    fun payUtility(draft: PaymentDraft, onResult: (String?) -> Unit) {
         viewModelScope.launch {
-            repository.payUtility(
-                PaymentDraft(
-                    utilityType = utilityType,
-                    amount = amount,
-                    meterNumber = meterNumber,
-                    paymentMethodId = paymentMethodId,
-                    useWallet = useWallet,
-                )
-            )
+            repository.payUtility(draft, onResult)
         }
     }
 

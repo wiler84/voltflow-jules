@@ -33,6 +33,7 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.Locale
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerializationException
@@ -239,10 +240,11 @@ class SupabaseService(context: Context) {
         }
         ensureSuccess(response.bodyAsText(), response.status.isSuccess())
         val raw = response.bodyAsText()
+        Log.d("AnalyticsFlow", "RPC get_aggregated_usage Raw Response: $raw")
         val list = json.decodeFromString<List<JsonObject>>(raw)
         list.map { obj ->
             UsageChartPoint(
-                timestamp = Instant.parse(obj["bucket_start"]!!.jsonPrimitive.content).toEpochMilli(),
+                timestamp = OffsetDateTime.parse(obj["bucket_start"]!!.jsonPrimitive.content).toInstant().toEpochMilli(),
                 value = obj["total_value"]!!.jsonPrimitive.content.toDouble()
             )
         }
@@ -345,6 +347,16 @@ class SupabaseService(context: Context) {
 
     suspend fun addUsageMetric(metric: UsageMetricPeriod) {
         insert("usage_metrics", metric)
+    }
+
+    suspend fun addUsageHistory(userId: String, kwhUsed: Double, amountSpent: Double) {
+        val body = buildJsonObject {
+            put("user_id", userId)
+            put("kwh_used", kwhUsed)
+            put("amount_spent", amountSpent)
+            put("usage_date", java.time.LocalDate.now().toString())
+        }
+        insert("usage_history", body)
     }
 
     suspend fun upsertBillingAccount(account: BillingAccount) {

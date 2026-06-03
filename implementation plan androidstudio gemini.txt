@@ -1,0 +1,83 @@
+implementation_plan.artifact.md
+VoltFlow "3-Million-Dollar" Upgrade Plan
+This plan outlines the steps to elevate VoltFlow to a world-class electricity payment utility app, focusing on premium UI/UX, robust engineering, and elite security.
+User Review Required
+•
+Visual Signature: The "Cyber-Utility" aesthetic uses deep charcoal backgrounds with neon cyan/lime accents. Please confirm if this matches your vision.
+•
+Glassmorphism: We will use the haze library for glassmorphism effects on key cards (Wallet, Bottom Nav).
+•
+Haptics: We will implement crisp mechanical haptics for all interactions.
+Proposed Changes
+UI/UX and Theme
+Refine the visual identity to match the "Cyber-Utility" aesthetic and professional designs.
+VoltflowDesign.kt
+•
+Update VoltflowDesignColors with specific "Electric" hex codes.
+•
+Add glassmorphic modifier extension.
+•
+Refine shimmerLoading for smoother transitions.
+Theme.kt
+•
+Align DarkColors and LightColors with the new design tokens.
+•
+Ensure typography uses correct weights for Sora and Manrope.
+Animations and Transitions
+
+Implement smooth, physics-based motion indicators.
+BouncyClick.kt
+•
+Refine spring physics (stiffness 800f, damping 0.35f).
+•
+Upgrade haptics to VirtualKey or TextHandleMove for a crisper feel.
+VoltflowApp.kt
+•
+Implement a shared element transition from Splash to Home icon using SharedTransitionLayout.
+•
+Add "Icon Shake" effect for failures.
+Screens.kt
+•
+Replace LinearProgressIndicator with a custom Canvas wave animation for energy usage.
+•
+Add Shimmer loading states for all major screens.
+Engineering and Security
+Harden the application core for high-stakes utility payments.
+MainActivity.kt
+•
+Implement FLAG_SECURE to prevent sensitive data from showing in the app switcher.
+VoltflowRepository.kt
+•
+Implement Optimistic UI for notifications and balance updates.
+•
+Implement Predictive Billing ("Projected Bill" calculation).
+•
+Implement a Circuit Breaker pattern for sync failures.
+•
+Ensure Offline Token Persistence (Last token widget).
+AndroidManifest.xml
+•
+Set launchMode="singleTask" for robust deep link handling.
+Compatibility 
+Ensure seamless operation across SDK 24 to 36.
+•
+Audit and fix any SDK-specific issues.
+•
+Verify that standard installation works without Shizuku.
+Verification Plan
+Automated Tests
+•
+Run existing unit tests: ./gradlew test
+•
+Run instrumentation tests: ./gradlew connectedAndroidTest
+Manual Verification
+•
+Visual Audit: Compare every screen against provided images and ensure "Cyber-Utility" consistency.
+•
+Motion Audit: Verify spring physics and shared element transitions.
+•
+Security Check: Verify FLAG_SECURE by attempting to screenshot or view in app switcher.
+•
+Offline Mode: Disable network and verify last token recovery and cached data availability.
+•
+SDK Range Test: Deploy on devices/emulators from API 24 to 35 (and 36 preview if available). 

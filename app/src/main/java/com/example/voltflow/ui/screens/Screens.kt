@@ -90,7 +90,8 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
-import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import kotlin.math.roundToInt
 
@@ -1219,15 +1220,26 @@ fun UsageScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 } else if (error != null) {
                     Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
                 } else if (data != null && data.points.isNotEmpty()) {
-                    val chartEntryModel = entryModelOf(*data.points.map { it.value.toFloat() }.toTypedArray())
+                    val entries = data.points.mapIndexed { index, point ->
+                        com.patrykandpatrick.vico.core.entry.FloatEntry(index.toFloat(), point.value.toFloat())
+                    }
+                    val chartEntryModel = com.patrykandpatrick.vico.core.entry.entryModelOf(entries)
                     
+                    val barColors = listOf(
+                        VoltflowDesign.BlueAccent,
+                        Color.White.copy(alpha = 0.5f)
+                    )
+
                     Chart(
                         chart = columnChart(
                             columns = listOf(
-                                com.patrykandpatrick.vico.core.component.shape.LineComponent(
-                                    color = if (moneyMode) 0xFF00C853.toInt() else 0xFF0066FF.toInt(),
-                                    thicknessDp = 10f,
-                                    shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40)
+                                com.patrykandpatrick.vico.compose.component.lineComponent(
+                                    color = VoltflowDesign.BlueAccent,
+                                    thickness = 12.dp,
+                                    shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40),
+                                    dynamicShader = DynamicShaders.fromBrush(
+                                        Brush.verticalGradient(barColors)
+                                    )
                                 )
                             )
                         ),
@@ -1325,7 +1337,7 @@ private fun BarChartItem(label: String, heightFactor: Float, value: String) {
 fun PayScreen(
     state: UiState,
     innerPadding: PaddingValues,
-    onPay: (UtilityType, Double, String, String?, Boolean, () -> Unit) -> Unit,
+    onPay: (UtilityType, Double, String, String?, Boolean, (String?) -> Unit) -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
@@ -1341,14 +1353,16 @@ fun PayScreen(
     var amountText by remember { mutableStateOf(String.format("%.2f", currentBalance)) }
     var selectedMethodId by remember { mutableStateOf(dashboard.paymentMethods.firstOrNull { it.isDefault }?.id) }
     var useWallet by remember { mutableStateOf(dashboard.paymentMethods.isEmpty()) }
-    var showSuccess by remember { mutableStateOf(false) }
+    
+    var isProcessing by remember { mutableStateOf(false) }
+    var paymentStatus by remember { mutableStateOf<PaymentResultState?>(null) }
+    
     val autopaySettings = state.dashboard.autopay ?: AutopaySettings(userId = state.dashboard.profile?.userId ?: "")
     var meterNumber by remember { mutableStateOf(autopaySettings.meterNumber ?: billingAccount?.meterNumber ?: "") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val amountValue = amountText.toDoubleOrNull() ?: 0.0
     val payLabel = if (amountValue > 0) "Pay ${amountFormatter(amountValue)}" else "Pay"
-    val latestTransaction = dashboard.transactions.firstOrNull()
     val selectedMethodLabel = if (useWallet) {
         "Voltflow Wallet • ${amountFormatter(dashboard.wallet?.balance ?: 0.0)} available"
     } else {
@@ -1442,6 +1456,7 @@ fun PayScreen(
                 value = meterNumber,
                 onValueChange = { meterNumber = it.filter(Char::isDigit).take(15) },
                 placeholder = "Enter 15-digit meter number",
+                isError = errorMessage?.contains("Meter") == true,
                 modifier = Modifier.errorShake(errorMessage?.contains("Meter"))
             )
             Spacer(Modifier.height(8.dp))
@@ -1487,7 +1502,7 @@ fun PayScreen(
             }
             errorMessage?.let {
                 Spacer(Modifier.height(16.dp))
-                Text(it, color = VoltflowDesign.WarningAmber, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont, modifier = Modifier.errorShake(errorMessage))
+                Text(it, color = VoltflowDesign.WarningAmber, fontSize = 13.sp, fontFamily = VoltflowDesign.ManropeFont, modifier = Modifier.errorShake(true))
             }
             Spacer(Modifier.height(28.dp))
             VoltflowButton(text = payLabel, icon = Icons.AutoMirrored.Default.ArrowForward) {
@@ -1496,7 +1511,8 @@ fun PayScreen(
                     amt < 1.0 -> "Enter an amount of at least $1.00."
                     amt > 1000.0 -> "Maximum payment is $1,000.00."
                     meterNumber.length != 15 -> "Meter number must be exactly 15 digits."
-                    !useWallet && selectedMethodId == null -> "Select a payment method."
+                    !useWallet && selectedMethodId == null -> "Please select a payment method."
+                    useWallet && (dashboard.wallet?.balance ?: 0.0) < amt -> "Insufficient wallet balance."
                     else -> null
                 }
                 if (error != null) {
@@ -1504,21 +1520,164 @@ fun PayScreen(
                     errorMessage = error
                 } else {
                     errorMessage = null
+                    isProcessing = true
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onPay(UtilityType.ELECTRICITY, amt, meterNumber.trim(), selectedMethodId, useWallet) {
-                        performScreenHaptic(view, android.view.HapticFeedbackConstants.CONFIRM)
+                    onPay(UtilityType.ELECTRICITY, amt, meterNumber.trim(), selectedMethodId, useWallet) { errorResult ->
+                        isProcessing = false
+                        if (errorResult != null) {
+                            paymentStatus = PaymentResultState.Failed(errorResult)
+                        } else {
+                            paymentStatus = PaymentResultState.Success
+                        }
+                        performScreenHaptic(view, if (errorResult == null) android.view.HapticFeedbackConstants.CONFIRM else android.view.HapticFeedbackConstants.REJECT)
                     }
                 }
             }
-            // Point 15: Increased bottom padding for Pay screen scroll
             Spacer(Modifier.height(240.dp))
+        }
+    }
+
+    if (isProcessing) {
+        PaymentProcessingSheet(onDismiss = { isProcessing = false })
+    }
+
+    paymentStatus?.let { result ->
+        when (result) {
+            is PaymentResultState.Success -> {
+                val transaction = dashboard.transactions.firstOrNull() ?: TransactionRecord(
+                    userId = dashboard.profile?.userId ?: "",
+                    kind = "UTILITY_PAYMENT",
+                    utilityType = "ELECTRICITY",
+                    amount = amountValue,
+                    status = "succeeded",
+                    meterNumber = meterNumber,
+                    paymentMethod = selectedMethodLabel,
+                    description = "Electricity payment completed",
+                    clientReference = UUID.randomUUID().toString()
+                )
+                PaymentSuccessSheet(
+                    amount = amountValue.toString(),
+                    meterNumber = meterNumber,
+                    methodLabel = selectedMethodLabel,
+                    transactionId = transaction.id,
+                    onDismiss = { paymentStatus = null }
+                )
+            }
+            is PaymentResultState.Failed -> {
+                PaymentFailedSheet(
+                    reason = result.reason,
+                    onDismiss = { paymentStatus = null }
+                )
+            }
+        }
+    }
+}
+
+sealed class PaymentResultState {
+    data object Success : PaymentResultState()
+    data class Failed(val reason: String) : PaymentResultState()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PaymentProcessingSheet(onDismiss: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "processing")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+
+    val blueAccent = VoltflowDesign.BlueAccent
+    VoltflowModalSheet(title = "", onDismiss = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(100.dp)) {
+                Canvas(modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = rotation }) {
+                    drawArc(
+                        color = blueAccent,
+                        startAngle = 0f,
+                        sweepAngle = 280f,
+                        useCenter = false,
+                        style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+                Icon(
+                    Icons.Default.Security,
+                    contentDescription = null,
+                    tint = blueAccent,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
+            Spacer(Modifier.height(32.dp))
+            Text(
+                "Securing Payment",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = VoltflowDesign.SoraFont
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Please wait while we process your transaction safely...",
+                color = VoltflowDesign.GrayText,
+                textAlign = TextAlign.Center,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(horizontal = 24.dp),
+                fontFamily = VoltflowDesign.ManropeFont
+            )
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PaymentSuccessSheet(
+fun PaymentFailedSheet(reason: String, onDismiss: () -> Unit) {
+    VoltflowModalSheet(title = "", onDismiss = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier.size(80.dp).clip(CircleShape).background(VoltflowDesign.DestructiveRed.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Close, contentDescription = null, tint = VoltflowDesign.DestructiveRed, modifier = Modifier.size(42.dp))
+            }
+            Spacer(Modifier.height(24.dp))
+            Text(
+                "Payment Failed",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = VoltflowDesign.SoraFont
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                reason,
+                color = VoltflowDesign.GrayText,
+                textAlign = TextAlign.Center,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(horizontal = 32.dp),
+                fontFamily = VoltflowDesign.ManropeFont
+            )
+            Spacer(Modifier.height(32.dp))
+            VoltflowButton(text = "Try Again") { onDismiss() }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PaymentSuccessSheet(
     amount: String,
     meterNumber: String,
     methodLabel: String,

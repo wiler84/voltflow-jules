@@ -1,0 +1,285 @@
+===== getAggregatedUsage =====
+
+===== get_aggregated_usage =====
+app/src/main/java/com/example/voltflow/data/cat log.txt:416:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:417:2026-06-03 11:17:40.440 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:431:2026-06-03 11:17:40.648 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1217:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1218:2026-06-03 11:17:40.440 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1221:2026-06-03 11:17:40.648 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1302:2026-06-03 11:17:55.075 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1306:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1307:2026-06-03 11:17:55.528 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-15T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1316:2026-06-03 11:17:55.538 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1338:2026-06-03 11:17:56.545 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1342:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1343:2026-06-03 11:17:56.967 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-04-03T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1355:2026-06-03 11:17:56.971 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1375:2026-06-03 11:17:57.465 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1379:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1380:2026-06-03 11:17:57.898 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1383:2026-06-03 11:17:57.900 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1403:2026-06-03 11:17:58.197 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1407:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1408:2026-06-03 11:17:58.622 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":913.7414965986394558}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1411:2026-06-03 11:17:58.624 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1431:2026-06-03 11:17:59.575 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1435:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1436:2026-06-03 11:17:59.998 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1439:2026-06-03 11:17:59.999 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1620:2026-06-03 11:20:30.365 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1624:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1625:2026-06-03 11:20:31.224 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":913.7414965986394558}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1628:2026-06-03 11:20:31.236 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1648:2026-06-03 11:20:34.282 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1652:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1653:2026-06-03 11:20:34.936 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1656:2026-06-03 11:20:34.939 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1677:2026-06-03 11:20:41.659 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1681:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1682:2026-06-03 11:20:42.120 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-15T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1691:2026-06-03 11:20:42.124 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1711:2026-06-03 11:20:44.587 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1715:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1716:2026-06-03 11:20:44.965 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-04-03T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1728:2026-06-03 11:20:44.968 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1748:2026-06-03 11:20:45.180 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1752:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1753:2026-06-03 11:20:45.577 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-04-03T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1765:2026-06-03 11:20:45.581 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1806:2026-06-03 11:20:47.300 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1809:2026-06-03 11:20:47.382 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1813:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1814:2026-06-03 11:20:47.729 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1817:2026-06-03 11:20:47.730 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1838:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1839:2026-06-03 11:20:47.877 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-27T00:00:00+00:00","total_value":134.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:1842:2026-06-03 11:20:47.878 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2140:2026-06-03 11:21:44.251 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2144:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2145:2026-06-03 11:21:44.939 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-15T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:2155:2026-06-03 11:21:44.944 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2175:2026-06-03 11:21:45.568 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2179:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2180:2026-06-03 11:21:46.027 27210-27210 AnalyticsFlow           com.android.voltflow                 D  RPC get_aggregated_usage Raw Response: [{"bucket_start":"2026-05-15T00:00:00+00:00","total_value":84.32}, 
+app/src/main/java/com/example/voltflow/data/cat log.txt:2190:2026-06-03 11:21:46.029 27210-27210 AnalyticsFlow           com.android.voltflow                 E  RPC get_aggregated_usage failed (Fix with AI)
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:231:        val response = client.post("$supabaseUrl/rest/v1/rpc/get_aggregated_usage") {
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:242:        Log.d("AnalyticsFlow", "RPC get_aggregated_usage Raw Response: $raw")
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:251:        Log.e("AnalyticsFlow", "RPC get_aggregated_usage failed", error)
+
+===== usage_history =====
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:699:                // Record in usage_history for the graph
+app/src/main/java/com/example/voltflow/data/cat log.txt:1991:2026-06-03 11:21:06.298 27210-29438 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_history
+app/src/main/java/com/example/voltflow/data/cat log.txt:1999:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_history
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:358:        insert("usage_history", body)
+
+===== usage_metrics =====
+app/src/main/java/com/example/voltflow/data/cat log.txt:1098:2026-06-03 11:17:42.718 27210-27396 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1273:2026-06-03 11:17:42.718 27210-27396 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1290:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1520:2026-06-03 11:18:43.831 27210-27915 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1529:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1595:2026-06-03 11:19:46.380 27210-27917 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1604:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1894:2026-06-03 11:20:48.925 27210-27501 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:1909:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:2000:2026-06-03 11:21:07.416 27210-29438 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics
+app/src/main/java/com/example/voltflow/data/cat log.txt:2004:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics
+app/src/main/java/com/example/voltflow/data/cat log.txt:2005:2026-06-03 11:21:07.906 27210-29438 SupabaseService         com.android.voltflow                 E  Insert failed for usage_metrics (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2006:                                                                                                    java.lang.IllegalStateException: Could not find the 'amount_spent' column of 'usage_metrics' in the schema cache
+app/src/main/java/com/example/voltflow/data/cat log.txt:2108:2026-06-03 11:21:12.025 27210-27914 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/cat log.txt:2125:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/usage_metrics?user_id=eq.65e95c38-efe8-4c52-91e5-6163ed4662cd&select=%2A&order=period_start.desc
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:199:        fetchListSafe("usage_metrics", userId, order = "period_start.desc")
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:348:        insert("usage_metrics", metric)
+
+===== UsageScreen =====
+app/src/main/java/com/example/voltflow/ui/VoltflowApp.kt:279:                    Screen.Usage -> UsageScreen(viewModel, onBack = { navigator.pop() })
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1061:fun UsageScreen(viewModel: MainViewModel, onBack: () -> Unit) {
+
+===== Analytics =====
+app/src/main/java/com/example/voltflow/data/Models.kt:168:data class UsageMetricPeriod(
+app/src/main/java/com/example/voltflow/data/Models.kt:292:    val usagePeriods: List<UsageMetricPeriod> = emptyList(),
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:703:                    UsageMetricPeriod(
+app/src/main/java/com/example/voltflow/data/cat log.txt:955:                                                                                                      adb shell setprop debug.firebase.analytics.app com.transsion.plat.appupdate
+app/src/main/java/com/example/voltflow/data/cat log.txt:2025:2026-06-03 11:21:08.346 27210-29438 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/analytics_events
+app/src/main/java/com/example/voltflow/data/cat log.txt:2029:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/analytics_events
+app/src/main/java/com/example/voltflow/data/cat log.txt:2030:2026-06-03 11:21:08.707 27210-29438 SupabaseService         com.android.voltflow                 E  Insert failed for analytics_events (Fix with AI)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2031:                                                                                                    java.lang.IllegalStateException: Could not find the 'idempotency_key' column of 'analytics_events' in the schema cache
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:198:    suspend fun fetchUsageMetrics(userId: String): List<UsageMetricPeriod> =
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:347:    suspend fun addUsageMetric(metric: UsageMetricPeriod) {
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:370:        insert("analytics_events", event)
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1108:        // Point 1: Usage analytics horizontal selector with animated indicator
+
+===== Charts =====
+app/src/main/java/com/example/voltflow/MainViewModel.kt:14:import com.example.voltflow.data.UsageChartData
+app/src/main/java/com/example/voltflow/MainViewModel.kt:19:data class UsageChartState(
+app/src/main/java/com/example/voltflow/MainViewModel.kt:22:    val data: UsageChartData? = null,
+app/src/main/java/com/example/voltflow/MainViewModel.kt:35:    private val _usageChartState = MutableStateFlow(UsageChartState())
+app/src/main/java/com/example/voltflow/MainViewModel.kt:36:    val usageChartState: StateFlow<UsageChartState> = _usageChartState
+app/src/main/java/com/example/voltflow/MainViewModel.kt:39:        loadChartData(UsageRange.SEVEN_DAYS)
+app/src/main/java/com/example/voltflow/MainViewModel.kt:42:    fun loadChartData(range: UsageRange, isMoneyMode: Boolean = usageChartState.value.isMoneyMode) {
+app/src/main/java/com/example/voltflow/MainViewModel.kt:44:            _usageChartState.value = _usageChartState.value.copy(isLoading = true, range = range, isMoneyMode = isMoneyMode)
+app/src/main/java/com/example/voltflow/MainViewModel.kt:45:            repository.getUsageChartData(range, isMoneyMode).collect { result ->
+app/src/main/java/com/example/voltflow/MainViewModel.kt:47:                    _usageChartState.value = UsageChartState(range = range, isMoneyMode = isMoneyMode, data = chart, isLoading = false)
+app/src/main/java/com/example/voltflow/MainViewModel.kt:49:                    _usageChartState.value = UsageChartState(range = range, isMoneyMode = isMoneyMode, isLoading = false, error = err.message)
+app/src/main/java/com/example/voltflow/data/Models.kt:330:data class UsageChartData(
+app/src/main/java/com/example/voltflow/data/Models.kt:331:    val points: List<UsageChartPoint>,
+app/src/main/java/com/example/voltflow/data/Models.kt:338:data class UsageChartPoint(
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:418:    fun getUsageChartData(range: UsageRange, isMoneyMode: Boolean): Flow<Result<UsageChartData>> = flow {
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:421:        Log.d("AnalyticsFlow", "FetchAggregatedChart: [Range: ${range.label}, Mode: ${if (isMoneyMode) "Money" else "Usage"}]")
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:424:            Log.d("AnalyticsFlow", "FetchChart Points Received: ${points.size}")
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:431:            Log.d("AnalyticsFlow", "FetchChart success in ${System.currentTimeMillis() - startTime}ms")
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:432:            emit(Result.success(UsageChartData(
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:439:            Log.e("AnalyticsFlow", "FetchChart failed", e)
+app/src/main/java/com/example/voltflow/data/cat log.txt:448:2026-06-03 11:17:40.648 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:449:2026-06-03 11:17:40.649 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 9358ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1238:2026-06-03 11:17:40.648 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1239:2026-06-03 11:17:40.649 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 9358ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1301:2026-06-03 11:17:55.052 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 30D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1333:2026-06-03 11:17:55.538 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1334:2026-06-03 11:17:55.538 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 486ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1337:2026-06-03 11:17:56.537 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 3M, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1372:2026-06-03 11:17:56.971 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1373:2026-06-03 11:17:56.971 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 434ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1374:2026-06-03 11:17:57.454 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1400:2026-06-03 11:17:57.900 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1401:2026-06-03 11:17:57.900 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 446ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1402:2026-06-03 11:17:58.188 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Usage]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1428:2026-06-03 11:17:58.624 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1429:2026-06-03 11:17:58.624 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 436ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1430:2026-06-03 11:17:59.566 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1456:2026-06-03 11:18:00.000 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1457:2026-06-03 11:18:00.000 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 434ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1619:2026-06-03 11:20:30.345 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Usage]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1645:2026-06-03 11:20:31.236 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1646:2026-06-03 11:20:31.236 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 891ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1647:2026-06-03 11:20:34.269 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1673:2026-06-03 11:20:34.939 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1674:2026-06-03 11:20:34.939 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 670ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1676:2026-06-03 11:20:41.623 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 30D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1708:2026-06-03 11:20:42.124 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1709:2026-06-03 11:20:42.124 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 501ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1710:2026-06-03 11:20:44.575 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 3M, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1745:2026-06-03 11:20:44.968 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1746:2026-06-03 11:20:44.968 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 393ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1747:2026-06-03 11:20:45.172 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 6M, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1782:2026-06-03 11:20:45.581 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1783:2026-06-03 11:20:45.581 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 409ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1805:2026-06-03 11:20:47.290 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1808:2026-06-03 11:20:47.374 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 7D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:1834:2026-06-03 11:20:47.730 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1835:2026-06-03 11:20:47.730 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 440ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:1859:2026-06-03 11:20:47.878 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:1860:2026-06-03 11:20:47.878 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 504ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:2139:2026-06-03 11:21:44.241 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 30D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:2172:2026-06-03 11:21:44.944 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:2173:2026-06-03 11:21:44.944 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 703ms
+app/src/main/java/com/example/voltflow/data/cat log.txt:2174:2026-06-03 11:21:45.555 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchAggregatedChart: [Range: Past 30D, Mode: Money]
+app/src/main/java/com/example/voltflow/data/cat log.txt:2207:2026-06-03 11:21:46.029 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart Points Received: 0
+app/src/main/java/com/example/voltflow/data/cat log.txt:2208:2026-06-03 11:21:46.029 27210-27210 AnalyticsFlow           com.android.voltflow                 D  FetchChart success in 474ms
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:229:    suspend fun fetchAggregatedUsage(userId: String, days: Int, isMoney: Boolean): List<UsageChartPoint> = runCatching {
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:245:            UsageChartPoint(
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:66:import com.example.voltflow.data.UsageChartData
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:67:import com.example.voltflow.data.UsageChartPoint
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:91:import com.patrykandpatrick.vico.compose.chart.Chart
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:92:import com.patrykandpatrick.vico.compose.chart.column.columnChart
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:721:                item { ActionChip("Usage Graph", Icons.Outlined.BarChart, onOpenUsage) }
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1062:    val chartState by viewModel.usageChartState.collectAsState()
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1093:                        modifier = Modifier.clickable { if (!isMoneyMode) viewModel.loadChartData(range, true) }
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1100:                        modifier = Modifier.clickable { if (isMoneyMode) viewModel.loadChartData(range, false) }
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1150:                            .clickable { viewModel.loadChartData(r) },
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1233:                    Chart(
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1234:                        chart = columnChart(
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:1319:private fun BarChartItem(label: String, heightFactor: Float, value: String) {
+
+===== Graph Data =====
+
+===== RPC Calls =====
+app/src/main/java/com/example/voltflow/data/cat log.txt:416:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:437:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:445:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:657:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:927:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1217:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1227:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1235:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1302:2026-06-03 11:17:55.075 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1306:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1322:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1330:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1338:2026-06-03 11:17:56.545 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1342:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1361:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1369:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1375:2026-06-03 11:17:57.465 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1379:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1389:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1397:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1403:2026-06-03 11:17:58.197 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1407:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1417:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1425:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1431:2026-06-03 11:17:59.575 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1435:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1445:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1453:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1620:2026-06-03 11:20:30.365 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1624:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1634:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1642:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1648:2026-06-03 11:20:34.282 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1652:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1662:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1670:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1677:2026-06-03 11:20:41.659 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1681:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1697:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1705:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1711:2026-06-03 11:20:44.587 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1715:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1734:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1742:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1748:2026-06-03 11:20:45.180 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1752:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1771:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1779:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1806:2026-06-03 11:20:47.300 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1809:2026-06-03 11:20:47.382 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1813:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1823:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1831:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1838:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:1848:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:1856:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2009:                                                                                                    	at com.example.voltflow.data.SupabaseService$addUsageMetric$1.invokeSuspend(Unknown Source:15)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2034:                                                                                                    	at com.example.voltflow.data.SupabaseService$addAnalyticsEvent$1.invokeSuspend(Unknown Source:15)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2140:2026-06-03 11:21:44.251 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2144:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2161:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2169:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2175:2026-06-03 11:21:45.568 27210-27210 VoltflowHttp            com.android.voltflow                 D  REQUEST: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2179:                                                                                                    FROM: https://tqvemfaxqiisxvjhrxta.supabase.co/rest/v1/rpc/get_aggregated_usage
+app/src/main/java/com/example/voltflow/data/cat log.txt:2196:                                                                                                    	at com.example.voltflow.data.SupabaseService$fetchAggregatedUsage$1.invokeSuspend(Unknown Source:16)
+app/src/main/java/com/example/voltflow/data/cat log.txt:2204:                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:231:        val response = client.post("$supabaseUrl/rest/v1/rpc/get_aggregated_usage") {
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:2206:    VoltflowCard(modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() }) {
+app/src/main/java/com/example/voltflow/ui/screens/Screens.kt:3840:        modifier = Modifier.fillMaxWidth().height(72.dp).clickable(enabled = onClick != null) { onClick?.invoke() }.padding(horizontal = 20.dp),
+app/src/main/java/com/example/voltflow/ui/Components.kt:182:        modifier = modifier.fillMaxWidth().height(72.dp).bouncyClick(enabled = onClick != null) { onClick?.invoke() }.padding(horizontal = 20.dp),
+
+===== Usage Repository =====
+app/src/main/java/com/example/voltflow/data/Models.kt:64:data class UsageMetrics(
+app/src/main/java/com/example/voltflow/data/Models.kt:285:    val usage: UsageMetrics? = null,
+app/src/main/java/com/example/voltflow/data/SupabaseRealtimeService.kt:20:    val usage: Flow<UsageMetrics>,
+app/src/main/java/com/example/voltflow/data/SupabaseRealtimeService.kt:74:            activeChannel.postgresListDataFlow<UsageMetrics, String>(schema = "public", table = "usage", primaryKey = UsageMetrics::userId)
+app/src/main/java/com/example/voltflow/data/SupabaseRealtimeService.kt:75:                .map { list: List<UsageMetrics> -> list.firstOrNull { it.userId == session.userId } ?: UsageMetrics(userId = session.userId) }
+app/src/main/java/com/example/voltflow/data/SupabaseRealtimeService.kt:78:            flowOf(UsageMetrics(userId = session.userId))
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:634:            val currentUsage = snapshot.usage ?: UsageMetrics(userId = session.userId)
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:700:                service.addUsageHistory(session.userId, kwhUsed, draft.amount)
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:779:            service.upsertUsage(UsageMetrics(userId = session.userId, updatedAt = Instant.now().toString()))
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:786:    private fun UsageMetrics.applyPayment(draft: PaymentDraft): UsageMetrics {
+app/src/main/java/com/example/voltflow/data/VoltflowRepository.kt:890:            val usagePeriodsDeferred = async(networkDispatcher) { runCatching { service.fetchUsageMetrics(userId) }.getOrNull() ?: emptyList() }
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:186:    suspend fun fetchUsage(userId: String): UsageMetrics? = fetchListSafe<UsageMetrics>("usage", userId).firstOrNull()
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:198:    suspend fun fetchUsageMetrics(userId: String): List<UsageMetricPeriod> =
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:221:    suspend fun upsertUsage(usageMetrics: UsageMetrics) {
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:222:        upsert("usage", usageMetrics, conflictColumn = "user_id")
+app/src/main/java/com/example/voltflow/data/SupabaseService.kt:351:    suspend fun addUsageHistory(userId: String, kwhUsed: Double, amountSpent: Double) {

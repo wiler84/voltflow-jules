@@ -33,6 +33,7 @@ import java.time.LocalDate
 import org.mindrot.jbcrypt.BCrypt
 import java.time.Duration
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.UUID
 import java.util.Locale
 
@@ -421,6 +422,7 @@ class VoltflowRepository(
         Log.d("AnalyticsFlow", "FetchAggregatedChart: [Range: ${range.label}, Mode: ${if (isMoneyMode) "Money" else "Usage"}]")
         try {
             val points = service.fetchAggregatedUsage(session.userId, range.days, isMoneyMode)
+            Log.d("AnalyticsFlow", "FetchChart Points Received: ${points.size}")
             
             val totalValue = points.sumOf { it.value }
             
@@ -601,11 +603,11 @@ class VoltflowRepository(
         }
     }
 
-    suspend fun payUtility(draft: PaymentDraft) {
+    suspend fun payUtility(draft: PaymentDraft, onResult: (String?) -> Unit) {
         val startTime = System.currentTimeMillis()
         Log.d("PaymentFlow", "PayUtility started: Amount=${draft.amount}, Utility=${draft.utilityType.label}")
         if (draft.amount <= 0.0) {
-            publishError(IllegalArgumentException("Enter an amount greater than zero"))
+            onResult("Enter an amount greater than zero")
             return
         }
         withCurrentUser { session ->
@@ -616,11 +618,11 @@ class VoltflowRepository(
                 ?: snapshot.paymentMethods.firstOrNull { it.isDefault }
             
             if (!draft.useWallet && method == null) {
-                publishError(IllegalStateException("Add a valid payment method first"))
+                onResult("Add a valid payment method first")
                 return@withCurrentUser
             }
             if (draft.useWallet && wallet.balance < draft.amount) {
-                publishError(IllegalStateException("Insufficient wallet balance"))
+                onResult("Insufficient wallet balance")
                 return@withCurrentUser
             }
 
@@ -694,6 +696,10 @@ class VoltflowRepository(
                 // ELECTRICITY USAGE CALCULATION & IDEMPOTENCY (Point 4 & 5)
                 val electricityRate = 0.147
                 val kwhUsed = draft.amount / electricityRate
+                
+                // Record in usage_history for the graph
+                service.addUsageHistory(session.userId, kwhUsed, draft.amount)
+
                 service.addUsageMetric(
                     UsageMetricPeriod(
                         userId = session.userId,
@@ -717,12 +723,13 @@ class VoltflowRepository(
                 
                 // ONE-TIME UI EVENT (Point 2)
                 _uiEvents.send("Payment processed successfully")
+                onResult(null) // Success
             }.onSuccess {
                 Log.d("PaymentFlow", "PayUtility success in ${System.currentTimeMillis() - startTime}ms")
             }.onFailure { error ->
                 Log.e("PaymentFlow", "PayUtility failed", error)
                 _uiState.update { it.copy(dashboard = snapshot) }
-                publishError(error)
+                onResult(error.message ?: "Transaction failed. Please try again.")
             }
         }
     }
@@ -888,7 +895,7 @@ class VoltflowRepository(
             val walletTransactions = walletTransactionsDeferred.await()
             val usagePeriods = usagePeriodsDeferred.await()
 
-            val predicted = predictNextBill(usagePeriods)
+            val predicted = predictNextBill(transactions)
             circuitBreaker.onSuccess()
 
             _uiState.update { currentState ->
@@ -1016,18 +1023,24 @@ class VoltflowRepository(
         }
     }
 
-    private fun predictNextBill(periods: List<UsageMetricPeriod>): Double {
-        if (periods.size < 2) return periods.lastOrNull()?.amountSpent ?: 0.0
-        val x = periods.indices.map { it.toDouble() }
-        val y = periods.map { it.amountSpent }
-        val n = x.size
-        val sumX = x.sum()
-        val sumY = y.sum()
-        val sumXY = x.zip(y).sumOf { it.first * it.second }
-        val sumXX = x.sumOf { it * it }
-        val slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX)
-        val intercept = (sumY - slope * sumX) / n
-        return (slope * n + intercept).coerceAtLeast(0.0)
+    private fun predictNextBill(transactions: List<TransactionRecord>): Double {
+        val utilityPayments = transactions.filter { it.kind == TransactionKind.UTILITY_PAYMENT.name && it.status == "succeeded" }
+        if (utilityPayments.isEmpty()) return 0.0
+        
+        // Calculate daily average based on the last 30 days
+        val thirtyDaysAgo = Instant.now().minus(30, ChronoUnit.DAYS)
+        val recentPayments = utilityPayments.filter { 
+            runCatching { OffsetDateTime.parse(it.occurredAt).toInstant() }.getOrNull()?.isAfter(thirtyDaysAgo) ?: false
+        }
+        
+        if (recentPayments.isEmpty()) {
+            // Fallback to overall average if no payments in last 30 days
+            return utilityPayments.map { it.amount }.average()
+        }
+        
+        val totalSpent = recentPayments.sumOf { it.amount }
+        // Simple 30-day projection: if they spent X in the last 30 days, we predict they'll spend that again
+        return totalSpent
     }
 
     private class CircuitBreaker(val threshold: Int = 3, val resetTimeoutMs: Long = 60_000L) {

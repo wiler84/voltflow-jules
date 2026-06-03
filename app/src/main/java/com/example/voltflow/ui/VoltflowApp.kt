@@ -248,10 +248,11 @@ fun VoltflowApp(
                     Screen.Pay -> PayScreen(
                         state = state,
                         innerPadding = innerPadding,
-                        onPay = { utility, amount, meterNumber, method, useWallet, onSuccess ->
-                            viewModel.payUtility(utility, amount, meterNumber, method, useWallet)
-                            onSuccess()
-                            navigator.navigate(Screen.TransactionReceipt)
+                        onPay = { utility, amount, meterNumber, method, useWallet, onResult ->
+                            viewModel.payUtility(
+                                PaymentDraft(utility, amount, meterNumber, method, useWallet),
+                                onResult
+                            )
                         },
                         onBack = { navigator.pop() },
                     )
